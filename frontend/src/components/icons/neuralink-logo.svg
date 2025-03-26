@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 大脑图标 -->
+  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#6A5ACD"/>
+  <!-- 脑波纹路 -->
+  <path d="M7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M9 12C9 10.34 10.34 9 12 9C13.66 9 15 10.34 15 12" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- 连接线 -->
+  <path d="M12 12V16" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- 心形 -->
+  <path d="M10.5 17C10.5 17 9 16 9 15C9 14.4477 9.44772 14 10 14C10.5 14 10.8 14.3 11 14.5C11.2 14.3 11.5 14 12 14C12.5523 14 13 14.4477 13 15C13 16 11.5 17 11.5 17" fill="#6A5ACD" stroke="#6A5ACD" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

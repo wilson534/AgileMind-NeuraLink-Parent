@@ -59,7 +59,17 @@ const WaveContainer = styled.div`
 `;
 
 // 波浪SVG
-const Wave = styled.div<{ delay: number; opacity: number; isDarkMode: boolean; theme: string }>`
+const Wave = styled.div.attrs<{ $delay: number; $opacity: number; isDarkMode: boolean; theme: string }>(props => {
+  // 将isDarkMode和theme属性转换为data属性，而不是直接传递给DOM
+  return {
+    style: {
+      animationDelay: `${props.$delay}s`,
+      opacity: props.$opacity
+    },
+    'data-theme': props.theme,
+    'data-isdarkmode': props.isDarkMode ? 'true' : 'false'
+  };
+})<{ $delay: number; $opacity: number; isDarkMode: boolean; theme: string }>`
   position: absolute;
   bottom: 0;
   left: 0;
@@ -67,8 +77,6 @@ const Wave = styled.div<{ delay: number; opacity: number; isDarkMode: boolean; t
   height: 100%;
   background-repeat: repeat-x;
   animation: waveAnimation 25s linear infinite;
-  animation-delay: ${props => props.delay}s;
-  opacity: ${props => props.opacity};
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23${props => {
     const color = props.isDarkMode 
       ? props.theme === 'health' ? '6A5ACD' 
@@ -122,7 +130,14 @@ const Halo = styled.div<{ size: number; x: number; y: number; color: string }>`
   }
 `;
 
-const GradientOverlay = styled.div<{ isDarkMode: boolean; theme: string; emotionState?: string | null }>`
+const GradientOverlay = styled.div.attrs<{ isDarkMode: boolean; theme: string; emotionState?: string | null }>(props => {
+  // 将属性转换为data属性，而不是直接传递给DOM
+  return {
+    'data-theme': props.theme,
+    'data-emotion': props.emotionState || 'none',
+    'data-isdarkmode': props.isDarkMode ? 'true' : 'false'
+  };
+})<{ isDarkMode: boolean; theme: string; emotionState?: string | null }>`
   position: absolute;
   top: 0;
   left: 0;
@@ -690,158 +705,163 @@ const BackgroundEffect: React.FC<BackgroundEffectProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    let lastTime = performance.now();
+    const fps = 60;
+    const frameInterval = 1000 / fps;
+
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const currentTime = performance.now();
+      const deltaTime = currentTime - lastTime;
 
-      // 更新并绘制每个粒子
-      const updatedParticles = particles.map(particle => {
-        // 移动粒子
-        let { x, y, speedX, speedY, size, color, opacity, type, rotation, scale } = particle;
+      if (deltaTime >= frameInterval) {
+        lastTime = currentTime - (deltaTime % frameInterval);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 计算与鼠标的距离
-        const dx = mousePosition.x - x;
-        const dy = mousePosition.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // 更新并绘制每个粒子
+        particles.forEach(particle => {
+          // 移动粒子
+          let { x, y, speedX, speedY, size, color, opacity, type, rotation, scale } = particle;
 
-        // 如果鼠标靠近，增强交互效果
-        if (distance < 150) { // 增加交互范围
-          const angle = Math.atan2(dy, dx);
-          // 使用交互强度参数增强效果
-          const force = (150 - distance) / (1000 / interactionStrength);
-          
-          if (type === 'special') {
-            // 特殊粒子对鼠标有更强的反应
-            speedX += Math.cos(angle) * force * 2;
-            speedY += Math.sin(angle) * force * 2;
-            // 特殊粒子在鼠标附近时闪烁
-            opacity = Math.min(1, opacity + Math.sin(Date.now() * 0.01) * 0.2);
-          } else {
-            speedX += Math.cos(angle) * force;
-            speedY += Math.sin(angle) * force;
-          }
-        }
+          // 计算与鼠标的距离
+          const dx = mousePosition.x - x;
+          const dy = mousePosition.y - y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // 更新位置
-        x += speedX;
-        y += speedY;
-
-        // 边界检查 - 改进边界处理逻辑，防止粒子卡住
-        if (x < 0) {
-          x = 0;
-          speedX = Math.abs(speedX) * (0.8 + Math.random() * 0.4); // 添加随机性
-        } else if (x > canvas.width) {
-          x = canvas.width;
-          speedX = -Math.abs(speedX) * (0.8 + Math.random() * 0.4); // 添加随机性
-        }
-        
-        if (y < 0) {
-          y = 0;
-          speedY = Math.abs(speedY) * (0.8 + Math.random() * 0.4); // 添加随机性
-        } else if (y > canvas.height) {
-          y = canvas.height;
-          speedY = -Math.abs(speedY) * (0.8 + Math.random() * 0.4); // 添加随机性
-        }
-
-        // 保存当前绘图状态
-        ctx.save();
-        
-        // 特殊粒子的绘制
-        if (type === 'special') {
-          // 应用旋转和缩放
-          ctx.translate(x, y);
-          if (rotation !== undefined) {
-            // 随时间缓慢旋转
-            const currentRotation = rotation + (Date.now() * 0.01 % 360);
-            ctx.rotate(currentRotation * Math.PI / 180);
-          }
-          if (scale !== undefined) {
-            // 随时间缓慢缩放
-            const currentScale = scale + Math.sin(Date.now() * 0.002) * 0.2;
-            ctx.scale(currentScale, currentScale);
-          }
-          
-          // 绘制特殊形状（如星形或多边形）- 优化绘制逻辑
-          const specialShapes = Math.floor(Math.random() * 3);
-          if (specialShapes === 0) {
-            // 绘制星形 - 改进绘制方法
-            const spikes = 5;
-            const outerRadius = size;
-            const innerRadius = size / 2;
+          // 如果鼠标靠近，增强交互效果
+          if (distance < 150) { // 增加交互范围
+            const angle = Math.atan2(dy, dx);
+            // 使用交互强度参数增强效果
+            const force = (150 - distance) / (1000 / interactionStrength);
             
-            ctx.beginPath();
-            for (let i = 0; i < spikes * 2; i++) {
-              const radius = i % 2 === 0 ? outerRadius : innerRadius;
-              const angle = (Math.PI * i) / spikes;
-              const xPos = radius * Math.cos(angle);
-              const yPos = radius * Math.sin(angle);
+            if (type === 'special') {
+              // 特殊粒子对鼠标有更强的反应
+              speedX += Math.cos(angle) * force * 2;
+              speedY += Math.sin(angle) * force * 2;
+              // 特殊粒子在鼠标附近时闪烁
+              opacity = Math.min(1, opacity + Math.sin(currentTime * 0.01) * 0.2);
+            } else {
+              speedX += Math.cos(angle) * force;
+              speedY += Math.sin(angle) * force;
+            }
+          }
+
+          // 更新位置
+          x += speedX;
+          y += speedY;
+
+          // 边界检查 - 改进边界处理逻辑，防止粒子卡住
+          if (x < 0) {
+            x = 0;
+            speedX = Math.abs(speedX) * (0.8 + Math.random() * 0.4);
+          } else if (x > canvas.width) {
+            x = canvas.width;
+            speedX = -Math.abs(speedX) * (0.8 + Math.random() * 0.4);
+          }
+          
+          if (y < 0) {
+            y = 0;
+            speedY = Math.abs(speedY) * (0.8 + Math.random() * 0.4);
+          } else if (y > canvas.height) {
+            y = canvas.height;
+            speedY = -Math.abs(speedY) * (0.8 + Math.random() * 0.4);
+          }
+
+          // 保存当前绘图状态
+          ctx.save();
+          
+          // 特殊粒子的绘制
+          if (type === 'special') {
+            // 应用旋转和缩放
+            ctx.translate(x, y);
+            if (rotation !== undefined) {
+              // 随时间缓慢旋转
+              const currentRotation = rotation + (currentTime * 0.01 % 360);
+              ctx.rotate(currentRotation * Math.PI / 180);
+            }
+            if (scale !== undefined) {
+              // 随时间缓慢缩放
+              const currentScale = scale + Math.sin(currentTime * 0.002) * 0.2;
+              ctx.scale(currentScale, currentScale);
+            }
+            
+            // 绘制特殊形状（如星形或多边形）
+            const specialShapes = Math.floor(Math.random() * 3);
+            if (specialShapes === 0) {
+              // 绘制星形
+              const spikes = 5;
+              const outerRadius = size;
+              const innerRadius = size / 2;
               
-              if (i === 0) {
-                ctx.moveTo(xPos, yPos);
-              } else {
-                ctx.lineTo(xPos, yPos);
+              ctx.beginPath();
+              for (let i = 0; i < spikes * 2; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = (Math.PI * i) / spikes;
+                const xPos = radius * Math.cos(angle);
+                const yPos = radius * Math.sin(angle);
+                
+                if (i === 0) {
+                  ctx.moveTo(xPos, yPos);
+                } else {
+                  ctx.lineTo(xPos, yPos);
+                }
               }
+              ctx.closePath();
+            } else if (specialShapes === 1) {
+              // 绘制六边形
+              ctx.beginPath();
+              for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI * 2 * i) / 6;
+                const xPos = size * Math.cos(angle);
+                const yPos = size * Math.sin(angle);
+                if (i === 0) ctx.moveTo(xPos, yPos);
+                else ctx.lineTo(xPos, yPos);
+              }
+              ctx.closePath();
+            } else {
+              // 绘制圆形但添加发光效果
+              ctx.beginPath();
+              ctx.arc(0, 0, size, 0, Math.PI * 2);
+              ctx.shadowBlur = 15;
+              ctx.shadowColor = color;
             }
-            ctx.closePath();
-          } else if (specialShapes === 1) {
-            // 绘制六边形
+            
+            ctx.fillStyle = color.replace(/[^,]+(?=\))/, opacity.toString());
+            ctx.fill();
+            
+            // 添加光晕效果
             ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const angle = (Math.PI * 2 * i) / 6;
-              const x = size * Math.cos(angle);
-              const y = size * Math.sin(angle);
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
+            ctx.arc(0, 0, size * 1.5, 0, Math.PI * 2);
+            const gradient = ctx.createRadialGradient(0, 0, size, 0, 0, size * 1.5);
+            gradient.addColorStop(0, color.replace(/[^,]+(?=\))/, (opacity * 0.5).toString()));
+            gradient.addColorStop(1, color.replace(/[^,]+(?=\))/, '0'));
+            ctx.fillStyle = gradient;
+            ctx.fill();
           } else {
-            // 绘制圆形但添加发光效果
+            // 普通粒子绘制
             ctx.beginPath();
-            ctx.arc(0, 0, size, 0, Math.PI * 2);
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = color;
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = color.replace(/[^,]+(?=\))/, opacity.toString());
+            ctx.fill();
           }
           
-          ctx.fillStyle = color.replace(/[^,]+(?=\))/, opacity.toString());
-          ctx.fill();
-          
-          // 添加光晕效果
-          ctx.beginPath();
-          ctx.arc(0, 0, size * 1.5, 0, Math.PI * 2);
-          const gradient = ctx.createRadialGradient(0, 0, size, 0, 0, size * 1.5);
-          gradient.addColorStop(0, color.replace(/[^,]+(?=\))/, (opacity * 0.5).toString()));
-          gradient.addColorStop(1, color.replace(/[^,]+(?=\))/, '0'));
-          ctx.fillStyle = gradient;
-          ctx.fill();
-        } else {
-          // 普通粒子绘制
-          ctx.beginPath();
-          ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fillStyle = color.replace(/[^,]+(?=\))/, opacity.toString());
-          ctx.fill();
-        }
-        
-        // 恢复绘图状态
-        ctx.restore();
+          // 恢复绘图状态
+          ctx.restore();
 
-        return { ...particle, x, y, speedX, speedY, opacity };
-      });
+          // 更新粒子状态
+          particle.x = x;
+          particle.y = y;
+          particle.speedX = speedX;
+          particle.speedY = speedY;
+          particle.opacity = opacity;
 
-      // 使用函数式更新确保状态更新正确
-      setParticles(prev => {
-        // 检查是否有粒子卡在边界上
-        const fixedParticles = updatedParticles.map(particle => {
           // 如果粒子速度接近于0，给它一个小的随机速度
-          if (Math.abs(particle.speedX) < 0.05 && Math.abs(particle.speedY) < 0.05) {
-            return {
-              ...particle,
-              speedX: (Math.random() * 0.4 - 0.2) * (particle.type === 'special' ? 1.5 : 1),
-              speedY: (Math.random() * 0.4 - 0.2) * (particle.type === 'special' ? 1.5 : 1)
-            };
+          if (Math.abs(speedX) < 0.05 && Math.abs(speedY) < 0.05) {
+            particle.speedX = (Math.random() * 0.4 - 0.2) * (type === 'special' ? 1.5 : 1);
+            particle.speedY = (Math.random() * 0.4 - 0.2) * (type === 'special' ? 1.5 : 1);
           }
-          return particle;
         });
-        return fixedParticles;
-      });
+      }
+
       animationFrameId.current = requestAnimationFrame(animate);
     };
 
@@ -852,7 +872,7 @@ const BackgroundEffect: React.FC<BackgroundEffectProps> = ({
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [particles, mousePosition, interactionStrength]);
+  }, [particles.length, mousePosition, interactionStrength]); // 只依赖粒子数量而不是整个particles数组
 
   // 渲染季节特效元素
   const renderSeasonalEffects = () => {
@@ -1096,9 +1116,9 @@ const BackgroundEffect: React.FC<BackgroundEffectProps> = ({
     
     return (
       <WaveContainer>
-        <Wave delay={0} opacity={0.3} isDarkMode={isDarkMode} theme={theme} />
-        <Wave delay={-5} opacity={0.2} isDarkMode={isDarkMode} theme={theme} />
-        <Wave delay={-10} opacity={0.1} isDarkMode={isDarkMode} theme={theme} />
+        <Wave $delay={0} $opacity={0.3} isDarkMode={isDarkMode} theme={theme} />
+        <Wave $delay={-5} $opacity={0.2} isDarkMode={isDarkMode} theme={theme} />
+        <Wave $delay={-10} $opacity={0.1} isDarkMode={isDarkMode} theme={theme} />
       </WaveContainer>
     );
   };

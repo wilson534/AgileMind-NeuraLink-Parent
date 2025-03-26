@@ -253,6 +253,49 @@ const ReminderSection = styled.div`
   box-shadow: var(--card-shadow);
 `;
 
+const ReminderHistorySection = styled.div`
+  margin-top: 2rem;
+`;
+
+const ReminderList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const ReminderCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ReminderInfo = styled.div`
+  flex: 1;
+`;
+
+const ReminderCardTitle = styled.h4`
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+`;
+
+const ReminderCardMeta = styled.div`
+  font-size: 0.875rem;
+  color: #666;
+  display: flex;
+  gap: 1rem;
+`;
+
+const ReminderCardActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
 const SectionTitle = styled.h2`
   font-size: 1.5rem;
   color: var(--primary-color);
@@ -330,43 +373,87 @@ const InterventionForm = styled.form`
 `;
 
 // 模拟数据
+// 获取当前日期和前几天的日期
+const getCurrentDate = () => {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+};
+
+const getDateBefore = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().split('T')[0];
+};
+
 const mockConversations = [
   {
     id: 1,
-    date: '2023-06-15',
-    title: '今天有点不开心',
-    emotion: '难过',
-    emotionColor: '#4A6FA5',
+    date: getCurrentDate(),
+    title: '今天的美术课很有趣',
+    emotion: '开心',
+    emotionColor: '#06D6A0',
     messages: [
-      { id: 1, sender: 'child', content: '小熊，今天在学校有人不和我玩', time: '15:30' },
-      { id: 2, sender: 'bear', content: '哦，听起来你很难过呢。能告诉我发生了什么吗？', time: '15:31' },
-      { id: 3, sender: 'child', content: '我想和他们一起玩游戏，但是他们说人数已经够了', time: '15:32' },
-      { id: 4, sender: 'bear', content: '这种感觉确实不好受。有时候，其他小朋友可能已经开始了游戏，不是因为不喜欢你。明天你可以早点去问他们能不能一起玩，或者找找有没有其他小朋友也想玩？', time: '15:33' },
-      { id: 5, sender: 'child', content: '嗯，我明天试试看', time: '15:34' },
+      { id: 1, sender: 'child', content: '小熊，今天我们画了春天的景色！', time: '14:30' },
+      { id: 2, sender: 'bear', content: '真棒！你画了些什么呢？', time: '14:31' },
+      { id: 3, sender: 'child', content: '我画了樱花树和小鸟，老师说我画得很好看！', time: '14:32' },
+      { id: 4, sender: 'bear', content: '听起来是幅美丽的画作呢！你喜欢画画吗？', time: '14:33' },
+      { id: 5, sender: 'child', content: '嗯！我最喜欢美术课了，可以画出自己想象的东西', time: '14:34' },
     ]
   },
   {
     id: 2,
-    date: '2023-06-14',
-    title: '数学考试考砸了',
-    emotion: '焦虑',
-    emotionColor: '#FFA62B',
+    date: getDateBefore(1),
+    title: '和同学有了小矛盾',
+    emotion: '难过',
+    emotionColor: '#4A6FA5',
     messages: [
-      { id: 1, sender: 'child', content: '小熊，我数学考试只考了75分', time: '16:20' },
-      { id: 2, sender: 'bear', content: '没关系的，考试只是帮助我们找出需要提高的地方。你知道哪些题目做错了吗？', time: '16:21' },
-      { id: 3, sender: 'child', content: '分数题和应用题，我总是搞不清楚', time: '16:22' },
+      { id: 1, sender: 'child', content: '小熊，我和小明今天吵架了', time: '16:20' },
+      { id: 2, sender: 'bear', content: '发生什么事了呢？可以告诉我吗？', time: '16:21' },
+      { id: 3, sender: 'child', content: '我们都想当体育课的小队长，就争执起来了', time: '16:22' },
+      { id: 4, sender: 'bear', content: '我明白你们都很想当小队长。不过，朋友之间有分歧是很正常的，重要的是如何解决它。你们可以轮流当小队长，这样大家都有机会，你觉得呢？', time: '16:23' },
+      { id: 5, sender: 'child', content: '这个主意不错，明天我去和小明 says', time: '16:24' },
     ]
   },
   {
     id: 3,
-    date: '2023-06-12',
-    title: '今天和朋友一起玩得很开心',
-    emotion: '开心',
+    date: getDateBefore(2),
+    title: '学会了新的数学解题方法',
+    emotion: '兴奋',
+    emotionColor: '#FFD166',
+    messages: [
+      { id: 1, sender: 'child', content: '小熊！我今天终于学会了分数除法！', time: '15:45' },
+      { id: 2, sender: 'bear', content: '太棒了！是老师教了新的方法吗？', time: '15:46' },
+      { id: 3, sender: 'child', content: '对啊，原来倒过来乘就可以了，一点都不难！', time: '15:47' },
+      { id: 4, sender: 'bear', content: '你很聪明呢！现在明白了这个方法，以后做类似的题目就容易多了吧？', time: '15:48' },
+      { id: 5, sender: 'child', content: '是的！我要把这个方法教给其他同学！', time: '15:49' },
+    ]
+  },
+  {
+    id: 4,
+    date: getDateBefore(3),
+    title: '参加了学校的科技展',
+    emotion: '自豪',
     emotionColor: '#06D6A0',
     messages: [
-      { id: 1, sender: 'child', content: '小熊，今天我和李明一起踢足球，我进了两个球！', time: '17:45' },
-      { id: 2, sender: 'bear', content: '哇！那真是太棒了！你一定踢得很好。和朋友一起玩感觉怎么样？', time: '17:46' },
-      { id: 3, sender: 'child', content: '超级开心！我们约好周末再一起玩', time: '17:47' },
+      { id: 1, sender: 'child', content: '小熊，我的科技作品获得了优秀奖！', time: '17:30' },
+      { id: 2, sender: 'bear', content: '恭喜你！能给我介绍一下你的作品吗？', time: '17:31' },
+      { id: 3, sender: 'child', content: '我做了一个太阳能小风扇，可以自动追踪光线！', time: '17:32' },
+      { id: 4, sender: 'bear', content: '哇，这真是个既环保又实用的发明！你一定花了很多时间准备吧？', time: '17:33' },
+      { id: 5, sender: 'child', content: '是的，我查了很多资料，爸爸也帮我改进了设计', time: '17:34' },
+    ]
+  },
+  {
+    id: 5,
+    date: getDateBefore(4),
+    title: '第一次参加合唱团排练',
+    emotion: '期待',
+    emotionColor: '#FFB5A7',
+    messages: [
+      { id: 1, sender: 'child', content: '小熊，我今天加入了学校的合唱团！', time: '16:10' },
+      { id: 2, sender: 'bear', content: '这是个很好的机会！第一天排练感觉如何？', time: '16:11' },
+      { id: 3, sender: 'child', content: '有点紧张，但是大家都很友好，老师说我音准不错', time: '16:12' },
+      { id: 4, sender: 'bear', content: '这很棒啊！合唱最重要的就是大家一起配合。你们准备表演什么歌曲？', time: '16:13' },
+      { id: 5, sender: 'child', content: '我们要在校庆时表演《让我们荡起双桨》，我已经等不及了！', time: '16:14' },
     ]
   }
 ];
@@ -376,6 +463,10 @@ const ParentVoicePage: React.FC = () => {
   const [dateFilter, setDateFilter] = useState('all');
   const [emotionFilter, setEmotionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [savedInterventions, setSavedInterventions] = useState<Array<{keyword: string; response: string}>>([]);
+  const [savedReminders, setSavedReminders] = useState<Array<{id: number; title: string; date: string; time: string; content: string}>>([]);
   const [conversations, setConversations] = useState(mockConversations);
   const [expandedConversation, setExpandedConversation] = useState<number | null>(null);
   
@@ -396,6 +487,11 @@ const ParentVoicePage: React.FC = () => {
     //   .catch(error => console.error('获取对话记录失败:', error));
   }, []);
   
+  // 删除干预设置
+  const handleDeleteIntervention = (index: number) => {
+    setSavedInterventions(prev => prev.filter((_, i) => i !== index));
+  };
+
   // 过滤对话记录
   const filteredConversations = conversations.filter(conv => {
     // 日期过滤
@@ -407,6 +503,12 @@ const ParentVoicePage: React.FC = () => {
       if (dateFilter === 'today' && conv.date !== today) return false;
       if (dateFilter === 'yesterday' && conv.date !== yesterday) return false;
       if (dateFilter === 'lastWeek' && new Date(conv.date) < new Date(lastWeek)) return false;
+      if (dateFilter === 'custom' && customStartDate && customEndDate) {
+        const convDate = new Date(conv.date);
+        const startDate = new Date(customStartDate);
+        const endDate = new Date(customEndDate);
+        if (convDate < startDate || convDate > endDate) return false;
+      }
     }
     
     // 情绪过滤
@@ -451,6 +553,14 @@ const ParentVoicePage: React.FC = () => {
     //   .catch(error => console.error('设置提醒失败:', error));
     
     // 模拟成功响应
+    const newReminder = {
+      id: Date.now(),
+      title: reminderTitle,
+      date: reminderDate,
+      time: reminderTime,
+      content: reminderContent
+    };
+    setSavedReminders(prev => [...prev, newReminder]);
     alert('提醒设置成功！');
     // 重置表单
     setReminderTitle('');
@@ -468,16 +578,14 @@ const ParentVoicePage: React.FC = () => {
     //   response: interventionResponse
     // })
     //   .then(response => {
-    //     alert('干预设置成功！');
-    //     // 重置表单
+    //     setSavedInterventions(prev => [...prev, { keyword: interventionKeyword, response: interventionResponse }]);
     //     setInterventionKeyword('');
     //     setInterventionResponse('');
     //   })
     //   .catch(error => console.error('设置干预失败:', error));
     
     // 模拟成功响应
-    alert('干预设置成功！');
-    // 重置表单
+    setSavedInterventions(prev => [...prev, { keyword: interventionKeyword, response: interventionResponse }]);
     setInterventionKeyword('');
     setInterventionResponse('');
   };
@@ -517,8 +625,26 @@ const ParentVoicePage: React.FC = () => {
                 <option value="today">今天</option>
                 <option value="yesterday">昨天</option>
                 <option value="lastWeek">最近一周</option>
+                <option value="custom">自定义日期范围</option>
               </Select>
               
+              {dateFilter === 'custom' && (
+                <FilterGroup style={{ marginLeft: '1rem' }}>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    style={{ width: '140px' }}
+                  />
+                  <span style={{ margin: '0 0.5rem' }}>至</span>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    style={{ width: '140px' }}
+                  />
+                </FilterGroup>
+              )}
               <FilterLabel>情绪：</FilterLabel>
               <Select 
                 value={emotionFilter}
@@ -549,7 +675,10 @@ const ParentVoicePage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  onClick={() => toggleConversation(conversation.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleConversation(conversation.id);
+                  }}
                 >
                   <ConversationHeader $emotionColor={conversation.emotionColor}>
                     <div>
@@ -662,6 +791,37 @@ const ParentVoicePage: React.FC = () => {
                 </PrimaryButton>
               </FormActions>
             </ReminderForm>
+
+            <ReminderHistorySection>
+              <SectionTitle>提醒历史</SectionTitle>
+              <ReminderList>
+                {savedReminders.map(reminder => (
+                  <ReminderCard key={reminder.id}>
+                    <ReminderInfo>
+                      <ReminderCardTitle>{reminder.title}</ReminderCardTitle>
+                      <ReminderCardMeta>
+                        <span>日期：{reminder.date}</span>
+                        <span>时间：{reminder.time}</span>
+                      </ReminderCardMeta>
+                      <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.9rem' }}>
+                        <span>提醒内容：{reminder.content}</span>
+                      </div>
+                    </ReminderInfo>
+                    <ReminderCardActions>
+                      <SecondaryButton
+                        onClick={() => {
+                          setSavedReminders(prev =>
+                            prev.filter(item => item.id !== reminder.id)
+                          );
+                        }}
+                      >
+                        删除
+                      </SecondaryButton>
+                    </ReminderCardActions>
+                  </ReminderCard>
+                ))}
+              </ReminderList>
+            </ReminderHistorySection>
           </ReminderSection>
           
           <InterventionSection>
@@ -699,6 +859,46 @@ const ParentVoicePage: React.FC = () => {
                 </PrimaryButton>
               </FormActions>
             </InterventionForm>
+            
+            <div style={{ marginTop: '2rem' }}>
+              <SectionTitle style={{ fontSize: '1.2rem' }}>已保存的干预设置</SectionTitle>
+              {savedInterventions.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {savedInterventions.map((intervention, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        padding: '1rem',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>
+                          触发关键词：{intervention.keyword}
+                        </div>
+                        <div style={{ color: '#666' }}>
+                          自定义回复：{intervention.response}
+                        </div>
+                      </div>
+                      <SecondaryButton
+                        onClick={() => handleDeleteIntervention(index)}
+                        style={{ padding: '0.25rem 0.75rem' }}
+                      >
+                        删除
+                      </SecondaryButton>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>
+                  暂无保存的干预设置
+                </div>
+              )}
+            </div>
           </InterventionSection>
         </>
       )}

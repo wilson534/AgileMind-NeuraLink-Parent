@@ -10,6 +10,8 @@ import healthRoutes from './routes/healthRoutes';
 import reportRoutes from './routes/reportRoutes';
 import emotionRoutes from './routes/emotionRoutes';
 import voiceCloneRoutes from './routes/voiceCloneRoutes';
+import parentVoiceRoutes from './routes/parentVoiceRoutes';
+import communityRoutes from './routes/communityRoutes';
 
 // 加载环境变量
 dotenv.config();
@@ -29,6 +31,8 @@ app.use('/api/health', healthRoutes);
 app.use('/api/report', reportRoutes);
 app.use('/api/emotion', emotionRoutes);
 app.use('/api/voice', voiceCloneRoutes);
+app.use('/api/parent-voice', parentVoiceRoutes);
+app.use('/api/community', communityRoutes);
 
 // 根路径处理
 app.get('/', (req, res) => {

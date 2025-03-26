@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
 const PageContainer = styled.div`
@@ -467,72 +468,114 @@ const SubmitButton = styled(Button)`
 `;
 
 // 模拟数据
+// 获取当前日期和前几天的日期
+const getCurrentDate = () => {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+};
+
+const getDateBefore = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().split('T')[0];
+};
+
 const mockPosts = [
   {
     id: 1,
-    title: '如何帮助孩子建立良好的学习习惯？',
-    author: '李妈妈',
-    date: '2023-06-15',
-    content: '我的孩子今年上小学二年级，但是很难静下心来学习，总是三分钟热度。我尝试了很多方法，比如制定时间表、设置奖励机制等，但效果不明显。有没有家长遇到类似的问题，能分享一些有效的方法？',
-    likes: 24,
-    comments: 15,
-    views: 142,
-    tags: ['学习习惯', '小学生']
+    title: '孩子对STEM教育很感兴趣，如何培养？',
+    author: '王教授',
+    isExpert: true,
+    date: getCurrentDate(),
+    content: '最近发现我家孩子对编程和机器人制作特别感兴趣。作为一名教育工作者，我认为STEM教育对孩子的创新思维和问题解决能力培养非常重要。想和大家分享一些科技教育资源和实践经验，也欢迎讨论如何在家庭中开展STEM教育活动。',
+    likes: 45,
+    comments: 28,
+    views: 320,
+    tags: ['STEM教育', '创新思维', '科技教育']
   },
   {
     id: 2,
-    title: '分享：如何与青春期孩子有效沟通',
-    author: '王爸爸',
-    date: '2023-06-14',
-    content: '最近我的孩子进入青春期，变得很难沟通，动不动就发脾气或者不理人。经过一段时间的摸索，我发现了一些有效的沟通技巧，比如选择合适的时机、尊重他们的隐私、多倾听少说教等。想在这里分享给大家，也希望能听到更多家长的经验。',
-    likes: 36,
-    comments: 22,
-    views: 198,
-    tags: ['青春期', '沟通技巧']
+    title: '分享：我家孩子的学习时间管理经验',
+    author: '快乐妈妈',
+    isExpert: false,
+    date: getCurrentDate(),
+    content: '作为两个孩子的妈妈，我想分享一下如何帮助孩子合理安排学习和休息时间。我们家使用时间块管理法，把一天分成几个时间段，每个时段都有明确的任务。周末也会预留自由活动时间，让孩子能劳逸结合。这个方法使用半年多了，效果不错，孩子的学习效率提高了，也不会太累。',
+    likes: 32,
+    comments: 18,
+    views: 245,
+    tags: ['时间管理', '学习方法', '育儿经验']
   },
   {
     id: 3,
-    title: '孩子沉迷手机游戏怎么办？',
-    author: '张妈妈',
-    date: '2023-06-12',
-    content: '我家孩子今年初中一年级，最近非常沉迷手机游戏，作业也不认真做，成绩直线下滑。我和他爸爸试过没收手机、限制时间等方法，但效果不好，反而导致亲子关系紧张。有没有更好的方法来引导孩子合理使用电子设备？',
-    likes: 42,
-    comments: 31,
-    views: 256,
-    tags: ['电子产品', '游戏成瘾', '初中生']
+    title: '如何帮助孩子克服考试焦虑？',
+    author: '李心理师',
+    isExpert: true,
+    date: getDateBefore(1),
+    content: '作为一名儿童心理咨询师，我经常遇到因考试压力而产生焦虑的孩子。这里分享一些实用的减压技巧：正念呼吸练习、合理规划学习时间、建立积极的自我对话等。同时，家长的态度和支持也很关键。欢迎交流经验！',
+    likes: 56,
+    comments: 42,
+    views: 415,
+    tags: ['心理健康', '考试焦虑', '情绪管理']
   },
   {
     id: 4,
-    title: '推荐几本适合小学生的科普读物',
-    author: '刘老师',
-    date: '2023-06-10',
-    content: '作为一名小学科学老师，我想推荐几本非常适合小学生阅读的科普书籍，这些书既有趣又能激发孩子的科学兴趣。《十万个为什么》系列、《可怕的科学》系列、《DK儿童百科全书》等都是不错的选择。大家有没有其他好的科普书推荐？',
-    likes: 18,
-    comments: 12,
-    views: 89,
-    tags: ['阅读推荐', '科普', '小学生']
+    title: '求助：孩子沉迷手机游戏怎么办？',
+    author: '困惑爸爸',
+    isExpert: false,
+    date: getDateBefore(1),
+    content: '最近发现孩子一放学回家就想玩手机游戏，作业也不认真做了。我和他说过很多次，但效果不大。有经验的家长能分享一下如何引导孩子合理使用电子设备吗？现在真的很困扰。',
+    likes: 28,
+    comments: 35,
+    views: 320,
+    tags: ['电子产品', '行为管理', '求助']
   },
   {
     id: 5,
-    title: '孩子注意力不集中，是多动症吗？',
-    author: '陈妈妈',
-    date: '2023-06-08',
-    content: '我家孩子今年6岁，上幼儿园大班。老师反映他上课注意力不集中，坐不住，经常打扰其他小朋友。我很担心是不是多动症，但又不确定。有没有家长遇到类似情况？应该怎么判断是正常活泼还是需要就医？',
-    likes: 29,
-    comments: 24,
-    views: 176,
-    tags: ['注意力', '多动症', '幼儿园']
+    title: '分享：音乐教育对孩子成长的影响',
+    author: '张音乐老师',
+    isExpert: true,
+    date: getDateBefore(2),
+    content: '从事音乐教育多年，深深感受到音乐对孩子智力发展、情感表达和社交能力的积极影响。想分享一些适合不同年龄段的音乐启蒙方法，以及如何让孩子真正爱上音乐。也欢迎分享你们家的音乐教育经验！',
+    likes: 38,
+    comments: 25,
+    views: 280,
+    tags: ['音乐教育', '艺术启蒙', '儿童发展']
   },
   {
     id: 6,
-    title: '分享：如何培养孩子的阅读习惯',
-    author: '赵爸爸',
-    date: '2023-06-05',
-    content: '我家孩子从小就很喜欢看书，现在上小学四年级，阅读量已经很可观了。想分享一下我们是如何培养她阅读习惯的：从亲子共读开始，逐渐引导独立阅读；选择适合年龄的书籍；创造舒适的阅读环境；以身作则，父母也要多看书等。希望对其他家长有所帮助。',
-    likes: 33,
-    comments: 18,
-    views: 145,
-    tags: ['阅读习惯', '小学生']
+    title: '经验分享：如何培养孩子的阅读习惯',
+    author: '书香妈妈',
+    isExpert: false,
+    date: getDateBefore(2),
+    content: '想分享一下我们家培养孩子阅读习惯的经验。从孩子两岁开始，我们就每天坚持亲子共读，现在孩子六岁了，已经养成了每天阅读的习惯。重点是要选择适合孩子年龄的书籍，并且要让阅读变成一件有趣的事情，而不是任务。',
+    likes: 42,
+    comments: 31,
+    views: 298,
+    tags: ['阅读习惯', '亲子共读', '育儿经验']
+  },
+  {
+    id: 7,
+    title: '营养均衡：如何让挑食的孩子爱上健康饮食？',
+    author: '陈营养师',
+    isExpert: true,
+    date: getDateBefore(3),
+    content: '很多家长都为孩子挑食发愁。作为儿童营养师，我想分享一些让孩子爱上健康食物的创意方法：食物造型设计、亲子烹饪、认识食物的故事等。同时也会介绍一些营养均衡的食谱，让孩子在享受美食的同时获得健康。',
+    likes: 62,
+    comments: 45,
+    views: 520,
+    tags: ['营养健康', '饮食习惯', '亲子烹饪']
+  },
+  {
+    id: 8,
+    title: '分享：我家的亲子运动时光',
+    author: '活力爸爸',
+    isExpert: false,
+    date: getDateBefore(3),
+    content: '每个周末，我都会带孩子去公园运动。我们会玩飞盘、踢足球、打羽毛球等，有时也会和其他家庭一起组织小型运动会。通过运动，不仅增进了父子感情，也让孩子变得更加阳光开朗。欢迎大家分享你们的亲子运动经验！',
+    likes: 35,
+    comments: 27,
+    views: 265,
+    tags: ['亲子运动', '周末活动', '健康成长']
   }
 ];
 
@@ -555,6 +598,7 @@ const mockExperts = [
 ];
 
 const CommunityPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'popular' | 'latest'>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -710,10 +754,11 @@ const CommunityPage: React.FC = () => {
       </FilterContainer>
       
       <PostsContainer>
-        {filteredAndSortedPosts.length > 0 ? (
-          filteredAndSortedPosts.map(post => (
+        {getFilteredAndSortedPosts().length > 0 ? (
+          getFilteredAndSortedPosts().map(post => (
             <PostCard
               key={post.id}
+              onClick={() => navigate(`/post/${post.id}`)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}

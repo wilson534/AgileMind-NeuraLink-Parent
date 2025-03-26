@@ -89,9 +89,13 @@ const Footer = styled.footer`
   font-size: 0.875rem;
 `;
 
-const BearIcon = () => (
+const NeuraLinkIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C13.99 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z" fill="#6A5ACD"/>
+    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#6A5ACD"/>
+    <path d="M7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M9 12C9 10.34 10.34 9 12 9C13.66 9 15 10.34 15 12" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M12 12V16" stroke="#6A5ACD" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M10.5 17C10.5 17 9 16 9 15C9 14.4477 9.44772 14 10 14C10.5 14 10.8 14.3 11 14.5C11.2 14.3 11.5 14 12 14C12.5523 14 13 14.4477 13 15C13 16 11.5 17 11.5 17" fill="#6A5ACD" stroke="#6A5ACD" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 );
 
@@ -137,9 +141,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [location]);
   
   const navItems = [
+    { path: '/', label: '产品介绍' },
     { path: '/daily-report', label: '每日报告' },
     { path: '/emotion-chart', label: '情绪图表' },
     { path: '/health-manager', label: '身体小管家' },
+    { path: '/parent-voice', label: '家长之声' },
+    { path: '/community', label: '社区交流' },
     { path: '/image-gen', label: '文生图' },
     { path: '/voice-clone', label: '声音克隆' },
   ];
@@ -173,8 +180,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
       <Header>
         <Nav>
-          <Logo>
-            <BearIcon />
+          <Logo as={Link} to="/" style={{ textDecoration: 'none' }}>
+            <NeuraLinkIcon />
             <span>心灵纽带NeuraLink</span>
           </Logo>
           <NavLinks>
