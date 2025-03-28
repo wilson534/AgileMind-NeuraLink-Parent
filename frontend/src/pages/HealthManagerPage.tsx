@@ -172,43 +172,138 @@ const TimeInputContainer = styled.div`
 `;
 
 const GenerateButton = styled(motion.button)`
-  background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
+  background: linear-gradient(135deg, #E066FF, #9370DB);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  border-radius: 30px;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   display: block;
   margin: 2rem auto 0;
+  box-shadow: 0 4px 15px rgba(224, 102, 255, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 6px 20px rgba(224, 102, 255, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+  }
   
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    background: linear-gradient(135deg, #B19CD9, #9F9FED);
+    box-shadow: none;
+    transform: none;
+  }
+`;
+
+const ButtonLoadingSpinner = styled.div`
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  vertical-align: middle;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
 const AdviceContainer = styled.div`
   background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: var(--card-shadow);
-  margin-top: 2rem;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 `;
 
-const AdviceTitle = styled.h3`
-  font-size: 1.5rem;
+const AdviceHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+`;
+
+const AdviceTitle = styled.h2`
   color: var(--primary-color);
-  margin-bottom: 1.5rem;
-  text-align: center;
+  font-size: 1.5rem;
+  margin: 0;
+`;
+
+const AdviceTypeSelector = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const AdviceTypeButton = styled.button<{ isActive: boolean }>`
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: ${props => props.isActive ? 'var(--primary-color)' : '#f0f0f0'};
+  color: ${props => props.isActive ? 'white' : '#666'};
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: ${props => props.isActive ? '600' : '400'};
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const AdviceSection = styled.div`
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: ${props => props.theme === 'diet' ? 'rgba(255, 182, 193, 0.1)' : 
+    props.theme === 'exercise' ? 'rgba(152, 251, 152, 0.1)' : 
+    'rgba(135, 206, 235, 0.1)'};
+`;
+
+const AdviceSectionTitle = styled.h3`
+  color: ${props => props.theme === 'diet' ? '#FF69B4' : 
+    props.theme === 'exercise' ? '#3CB371' : 
+    '#4682B4'};
+  font-size: 1.2rem;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const AdviceContent = styled.div`
+  font-size: 1rem;
   line-height: 1.6;
-  color: #555;
+  color: #333;
+  
+  p {
+    margin: 8px 0;
+  }
+  
+  ul {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+  
+  li {
+    margin: 4px 0;
+  }
 `;
 
 const HighlightedText = styled.span`
@@ -223,15 +318,10 @@ const ScanningLight = styled(motion.div)`
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--primary-color),
-    var(--secondary-color),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  opacity: 0.6;
 `;
 
 // 上传图标组件
@@ -284,6 +374,25 @@ const ChartSection = styled.div`
   margin-bottom: 2rem;
 `;
 
+// 添加图标组件
+const DietIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+  </svg>
+);
+
+const ExerciseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
+  </svg>
+);
+
+const SleepIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.34 2.02C6.59 1.82 2 6.42 2 12c0 5.52 4.48 10 10 10 3.71 0 6.93-2.02 8.66-5.02-7.51-.25-12.09-8.43-8.32-14.96z"/>
+  </svg>
+);
+
 const HealthManagerPage: React.FC = () => {
   // 引用
   const fileInputRefs = {
@@ -312,7 +421,9 @@ const HealthManagerPage: React.FC = () => {
   });
   
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [advice, setAdvice] = useState<string>('');
+  const [adviceType, setAdviceType] = useState<'regular' | 'ai'>('regular');
+  const [regularAdvice, setRegularAdvice] = useState('');
+  const [aiAdvice, setAiAdvice] = useState('');
   const [showScanningEffect, setShowScanningEffect] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -405,7 +516,8 @@ const HealthManagerPage: React.FC = () => {
   const generateHealthAdvice = async () => {
     setIsGenerating(true);
     setShowScanningEffect(true);
-    setAdvice('');
+    setRegularAdvice('');
+    setAiAdvice('');
     setError(null);
 
     try {
@@ -429,23 +541,31 @@ const HealthManagerPage: React.FC = () => {
       formData.append('sleepEndTime', healthData.sleep.endTime);
       formData.append('sleepTotalHours', healthData.sleep.totalHours);
 
-      const response = await axios.post('/api/health/coze-advice', formData, {
+      // 获取常规建议
+      const regularResponse = await axios.post('/api/health/check', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      if (response.data.status === 'success') {
-        setAdvice(response.data.data.advice);
-      } else {
-        throw new Error(response.data.message || '获取建议失败');
+      // 获取AI建议
+      const aiResponse = await axios.post('/api/health/coze-advice', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (regularResponse.data.status === 'success') {
+        setRegularAdvice(regularResponse.data.data.advice);
+      }
+      if (aiResponse.data.status === 'success') {
+        setAiAdvice(aiResponse.data.data.advice);
       }
     } catch (error: any) {
       console.error('生成健康建议失败:', error);
       setError(error.response?.data?.message || '生成建议时出错');
     } finally {
       setIsGenerating(false);
-      // 延迟关闭扫描动画
       setTimeout(() => {
         setShowScanningEffect(false);
       }, 2000);
@@ -644,12 +764,20 @@ const HealthManagerPage: React.FC = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {isGenerating ? '生成中...' : '生成健康建议'}
+            {isGenerating ? (
+              <>
+                生成中
+                <ButtonLoadingSpinner />
+              </>
+            ) : (
+              '生成健康建议'
+            )}
           </GenerateButton>
         </form>
       </FormContainer>
       
-      {advice && (
+      {/* 健康建议部分 */}
+      {(regularAdvice || aiAdvice) && (
         <AdviceContainer>
           {showScanningEffect && (
             <ScanningLight
@@ -663,11 +791,96 @@ const HealthManagerPage: React.FC = () => {
               }}
             />
           )}
-          <AdviceTitle>健康建议</AdviceTitle>
+          <AdviceHeader>
+            <AdviceTitle>健康建议</AdviceTitle>
+            <AdviceTypeSelector>
+              <AdviceTypeButton
+                isActive={adviceType === 'regular'}
+                onClick={() => setAdviceType('regular')}
+              >
+                常规建议
+              </AdviceTypeButton>
+              <AdviceTypeButton
+                isActive={adviceType === 'ai'}
+                onClick={() => setAdviceType('ai')}
+              >
+                AI建议
+              </AdviceTypeButton>
+            </AdviceTypeSelector>
+          </AdviceHeader>
+          
           <AdviceContent>
-            {advice.split('\n').map((line, index) => (
-              <p key={index}>{highlightKeywords(line)}</p>
-            ))}
+            {adviceType === 'regular' ? (
+              <>
+                <AdviceSection theme="diet">
+                  <AdviceSectionTitle theme="diet">
+                    <DietIcon /> 饮食建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('早餐') || line.includes('午餐') || line.includes('晚餐') || line.includes('饮食'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="exercise">
+                  <AdviceSectionTitle theme="exercise">
+                    <ExerciseIcon /> 运动建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('运动') || line.includes('活动'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="sleep">
+                  <AdviceSectionTitle theme="sleep">
+                    <SleepIcon /> 睡眠建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('睡眠') || line.includes('作息'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+              </>
+            ) : (
+              <>
+                <AdviceSection theme="diet">
+                  <AdviceSectionTitle theme="diet">
+                    <DietIcon /> 饮食建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('早餐') || line.includes('午餐') || line.includes('晚餐') || line.includes('饮食'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="exercise">
+                  <AdviceSectionTitle theme="exercise">
+                    <ExerciseIcon /> 运动建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('运动') || line.includes('活动'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="sleep">
+                  <AdviceSectionTitle theme="sleep">
+                    <SleepIcon /> 睡眠建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('睡眠') || line.includes('作息'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+              </>
+            )}
           </AdviceContent>
         </AdviceContainer>
       )}
