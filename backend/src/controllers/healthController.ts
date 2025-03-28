@@ -22,9 +22,9 @@ export const analyzeHealthData = async (req: Request, res: Response) => {
     } = req.body;
     
     // 获取上传的图片文件（如果有）
-    const breakfastImage = req.files?.breakfastImage;
-    const lunchImage = req.files?.lunchImage;
-    const dinnerImage = req.files?.dinnerImage;
+    const breakfastImage = req.files && 'breakfastImage' in req.files ? req.files.breakfastImage[0] : null;
+    const lunchImage = req.files && 'lunchImage' in req.files ? req.files.lunchImage[0] : null;
+    const dinnerImage = req.files && 'dinnerImage' in req.files ? req.files.dinnerImage[0] : null;
     
     // 构建分析数据
     const analysisData = {
@@ -54,29 +54,14 @@ export const analyzeHealthData = async (req: Request, res: Response) => {
       }
     };
     
-    // 在实际应用中，这里应该调用AI健康专家API
-    // 例如使用OpenAI或火山引擎的API进行分析
-    
-    // 模拟调用AI健康专家API
-    let healthAdvice = '';
-    
-    // 分析饮食情况
-    const mealAnalysis = analyzeMeals(analysisData.meals);
-    
-    // 分析运动情况
-    const exerciseAnalysis = analyzeExercise(analysisData.exercise);
-    
-    // 分析睡眠情况
-    const sleepAnalysis = analyzeSleep(analysisData.sleep);
-    
-    // 组合建议
-    healthAdvice = `根据您提供的信息，我们的健康专家建议：\n${mealAnalysis}\n${exerciseAnalysis}\n${sleepAnalysis}`;
+    // 生成三条个性化建议
+    const personalizedAdvice = generatePersonalizedAdvice(analysisData);
     
     // 返回分析结果
     res.status(200).json({
       status: 'success',
       data: {
-        advice: healthAdvice
+        advice: personalizedAdvice
       }
     });
   } catch (error: any) {
@@ -89,82 +74,103 @@ export const analyzeHealthData = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * 分析饮食情况
- * @param meals 三餐信息
- * @returns 饮食建议
- */
-const analyzeMeals = (meals: any) => {
-  const { breakfast, lunch, dinner } = meals;
-  let advice = '';
+const generatePersonalizedAdvice = (data: any) => {
+  const adviceList = [];
   
-  // 分析早餐
-  if (!breakfast.description && !breakfast.hasImage) {
-    advice += '1. 未提供早餐信息，建议早餐应包含<蛋白质>、碳水化合物和水果，为一天提供充足能量。\n';
-  } else if (breakfast.description.includes('牛奶') || breakfast.description.includes('鸡蛋') || breakfast.description.includes('豆')) {
-    advice += '1. 早餐中含有优质<蛋白质>，这对孩子的生长发育非常有益。\n';
-  } else {
-    advice += '1. 建议在早餐中增加<蛋白质>的摄入，如牛奶、鸡蛋或豆制品。\n';
-  }
+  // 1. 饮食建议
+  const mealAdvice = generateMealAdvice(data.meals);
+  if (mealAdvice) adviceList.push(mealAdvice);
   
-  // 分析午餐和晚餐
-  if (lunch.description.includes('蔬菜') || dinner.description.includes('蔬菜')) {
-    advice += '2. 您的孩子摄入了足够的<蔬菜>，这有助于获取必要的维生素和矿物质。\n';
-  } else {
-    advice += '2. 建议增加<蔬菜>的摄入量，确保获取足够的维生素和矿物质。\n';
-  }
+  // 2. 运动建议
+  const exerciseAdvice = generateExerciseAdvice(data.exercise);
+  if (exerciseAdvice) adviceList.push(exerciseAdvice);
   
-  return advice;
+  // 3. 睡眠建议
+  const sleepAdvice = generateSleepAdvice(data.sleep);
+  if (sleepAdvice) adviceList.push(sleepAdvice);
+  
+  return adviceList;
 };
 
-/**
- * 分析运动情况
- * @param exercise 运动信息
- * @returns 运动建议
- */
-const analyzeExercise = (exercise: any) => {
-  const { type, duration, description } = exercise;
-  let advice = '';
+const generateMealAdvice = (meals: any) => {
+  const { breakfast, lunch, dinner } = meals;
+  const allMeals = [breakfast, lunch, dinner];
+  
+  // 检查是否所有餐次都有描述
+  const hasAllMeals = allMeals.every(meal => meal.description);
+  
+  if (!hasAllMeals) {
+    return {
+      type: '饮食',
+      title: '完善饮食记录',
+      content: '建议您记录每一餐的饮食内容，这样我们可以更好地为您提供饮食建议。'
+    };
+  }
+  
+  // 分析营养均衡
+  const allContent = allMeals.map(meal => meal.description.toLowerCase()).join(' ');
+  const hasProtein = /(肉|鱼|蛋|豆|牛奶)/.test(allContent);
+  const hasVegetables = /(蔬菜|青菜|白菜|胡萝卜|西兰花)/.test(allContent);
+  const hasGrains = /(米饭|面条|馒头|面包|粥)/.test(allContent);
+  
+  if (!hasProtein || !hasVegetables || !hasGrains) {
+    return {
+      type: '饮食',
+      title: '营养均衡建议',
+      content: '您的饮食结构需要调整：' + 
+        (!hasProtein ? '建议增加蛋白质摄入，如瘦肉、鱼类、蛋类等；' : '') +
+        (!hasVegetables ? '建议增加蔬菜摄入，保证营养均衡；' : '') +
+        (!hasGrains ? '建议适当增加主食摄入。' : '')
+    };
+  }
+  
+  return null;
+};
+
+const generateExerciseAdvice = (exercise: any) => {
+  const { type, duration } = exercise;
   
   if (!type || !duration) {
-    advice += '3. 未提供完整的运动信息，建议孩子每天至少进行30分钟的<中等强度运动>。\n';
-  } else {
-    const durationNum = parseInt(duration, 10) || 0;
-    
-    if (durationNum < 30) {
-      advice += `3. 当前<运动时间>${duration}分钟略显不足，建议每天至少保持30分钟中等强度运动。\n`;
-    } else if (durationNum >= 30 && durationNum < 60) {
-      advice += `3. <运动时间>${duration}分钟达到了基本要求，可以适当增加运动强度或尝试不同类型的运动。\n`;
-    } else {
-      advice += `3. <运动时间>${duration}分钟非常充足，请确保运动强度适中，注意补充水分。\n`;
-    }
+    return {
+      type: '运动',
+      title: '运动建议',
+      content: '建议您每天进行30分钟以上的中等强度运动，可以选择步行、游泳、骑自行车等运动方式。'
+    };
   }
   
-  return advice;
+  const durationNum = parseInt(duration, 10) || 0;
+  
+  if (durationNum < 30) {
+    return {
+      type: '运动',
+      title: '增加运动时间',
+      content: `您当前的运动时间为${duration}分钟，建议增加到30分钟以上，可以分多次进行。`
+    };
+  }
+  
+  return null;
 };
 
-/**
- * 分析睡眠情况
- * @param sleep 睡眠信息
- * @returns 睡眠建议
- */
-const analyzeSleep = (sleep: any) => {
+const generateSleepAdvice = (sleep: any) => {
   const { totalHours } = sleep;
-  let advice = '';
   
   if (!totalHours) {
-    advice += '4. 未提供睡眠时长信息，6-12岁的孩子建议每天睡眠9-12小时。\n';
-  } else {
-    const hoursNum = parseFloat(totalHours) || 0;
-    
-    if (hoursNum < 8) {
-      advice += `4. <睡眠时长>${totalHours}小时明显不足，可能影响孩子的生长发育和学习能力，建议增加睡眠时间。\n`;
-    } else if (hoursNum >= 8 && hoursNum < 9) {
-      advice += `4. <睡眠时长>${totalHours}小时基本达标，但仍建议增加至9小时以上，可以通过改善<睡眠环境>来提高睡眠质量。\n`;
-    } else {
-      advice += `4. <睡眠时长>${totalHours}小时充足，有助于孩子的身心健康发展，建议保持规律的作息时间。\n`;
-    }
+    return {
+      type: '睡眠',
+      title: '睡眠记录建议',
+      content: '建议您记录每天的睡眠时间，保持规律的作息习惯。'
+    };
   }
   
-  return advice;
+  const hoursNum = parseFloat(totalHours) || 0;
+  
+  if (hoursNum < 8) {
+    return {
+      type: '睡眠',
+      title: '改善睡眠质量',
+      content: `您当前的睡眠时间为${totalHours}小时，建议增加到8小时以上，保持规律的作息时间。`
+    };
+  }
+  
+  return null;
 };

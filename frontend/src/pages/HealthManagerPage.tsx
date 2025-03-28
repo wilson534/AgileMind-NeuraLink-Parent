@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import HealthChart from '../components/HealthChart';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -171,43 +172,138 @@ const TimeInputContainer = styled.div`
 `;
 
 const GenerateButton = styled(motion.button)`
-  background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
+  background: linear-gradient(135deg, #E066FF, #9370DB);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  border-radius: 30px;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   display: block;
   margin: 2rem auto 0;
+  box-shadow: 0 4px 15px rgba(224, 102, 255, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 6px 20px rgba(224, 102, 255, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+  }
   
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    background: linear-gradient(135deg, #B19CD9, #9F9FED);
+    box-shadow: none;
+    transform: none;
+  }
+`;
+
+const ButtonLoadingSpinner = styled.div`
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  vertical-align: middle;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
 const AdviceContainer = styled.div`
   background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: var(--card-shadow);
-  margin-top: 2rem;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 `;
 
-const AdviceTitle = styled.h3`
-  font-size: 1.5rem;
+const AdviceHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+`;
+
+const AdviceTitle = styled.h2`
   color: var(--primary-color);
-  margin-bottom: 1.5rem;
-  text-align: center;
+  font-size: 1.5rem;
+  margin: 0;
+`;
+
+const AdviceTypeSelector = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const AdviceTypeButton = styled.button<{ isActive: boolean }>`
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: ${props => props.isActive ? 'var(--primary-color)' : '#f0f0f0'};
+  color: ${props => props.isActive ? 'white' : '#666'};
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: ${props => props.isActive ? '600' : '400'};
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const AdviceSection = styled.div`
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background: ${props => props.theme === 'diet' ? 'rgba(255, 182, 193, 0.1)' : 
+    props.theme === 'exercise' ? 'rgba(152, 251, 152, 0.1)' : 
+    'rgba(135, 206, 235, 0.1)'};
+`;
+
+const AdviceSectionTitle = styled.h3`
+  color: ${props => props.theme === 'diet' ? '#FF69B4' : 
+    props.theme === 'exercise' ? '#3CB371' : 
+    '#4682B4'};
+  font-size: 1.2rem;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const AdviceContent = styled.div`
+  font-size: 1rem;
   line-height: 1.6;
-  color: #555;
+  color: #333;
+  
+  p {
+    margin: 8px 0;
+  }
+  
+  ul {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+  
+  li {
+    margin: 4px 0;
+  }
 `;
 
 const HighlightedText = styled.span`
@@ -222,15 +318,10 @@ const ScanningLight = styled(motion.div)`
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--primary-color),
-    var(--secondary-color),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  opacity: 0.6;
 `;
 
 // 上传图标组件
@@ -278,6 +369,30 @@ interface HealthData {
   };
 }
 
+const ChartSection = styled.div`
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+`;
+
+// 添加图标组件
+const DietIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+  </svg>
+);
+
+const ExerciseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>
+  </svg>
+);
+
+const SleepIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.34 2.02C6.59 1.82 2 6.42 2 12c0 5.52 4.48 10 10 10 3.71 0 6.93-2.02 8.66-5.02-7.51-.25-12.09-8.43-8.32-14.96z"/>
+  </svg>
+);
+
 const HealthManagerPage: React.FC = () => {
   // 引用
   const fileInputRefs = {
@@ -306,8 +421,11 @@ const HealthManagerPage: React.FC = () => {
   });
   
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [advice, setAdvice] = useState<string>('');
+  const [adviceType, setAdviceType] = useState<'regular' | 'ai'>('regular');
+  const [regularAdvice, setRegularAdvice] = useState('');
+  const [aiAdvice, setAiAdvice] = useState('');
   const [showScanningEffect, setShowScanningEffect] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   
   // 处理图片上传
   const handleImageUpload = (meal: 'breakfast' | 'lunch' | 'dinner', e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,14 +513,14 @@ const HealthManagerPage: React.FC = () => {
     }
   };
   
-  // 生成健康建议
   const generateHealthAdvice = async () => {
     setIsGenerating(true);
     setShowScanningEffect(true);
-    setAdvice('');
-    
+    setRegularAdvice('');
+    setAiAdvice('');
+    setError(null);
+
     try {
-      // 准备要发送的数据
       const formData = new FormData();
       
       // 添加三餐信息
@@ -422,26 +540,33 @@ const HealthManagerPage: React.FC = () => {
       formData.append('sleepStartTime', healthData.sleep.startTime);
       formData.append('sleepEndTime', healthData.sleep.endTime);
       formData.append('sleepTotalHours', healthData.sleep.totalHours);
-      
-      // 调用后端API
-      const response = await axios.post('/api/health-check', formData, {
+
+      // 获取常规建议
+      const regularResponse = await axios.post('/api/health/check', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      if (response.data.status === 'success') {
-        // 模拟接收到的健康建议数据
-        const adviceData = response.data.data.advice;
-        setAdvice(adviceData);
+
+      // 获取AI建议
+      const aiResponse = await axios.post('/api/health/coze-advice', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (regularResponse.data.status === 'success') {
+        setRegularAdvice(regularResponse.data.data.advice);
       }
-    } catch (error) {
+      if (aiResponse.data.status === 'success') {
+        setAiAdvice(aiResponse.data.data.advice);
+      }
+    } catch (error: any) {
       console.error('生成健康建议失败:', error);
-      // 如果API调用失败，使用模拟数据
-      setAdvice('根据您提供的信息，我们建议：\n1. 增加早餐的<蛋白质>摄入，可以考虑添加鸡蛋或豆制品。\n2. 您的<运动时间>略显不足，建议每天至少保持30分钟中等强度运动。\n3. <睡眠质量>可以通过睡前放松活动来提高，避免使用电子设备。');
+      setError(error.response?.data?.message || '生成建议时出错');
     } finally {
-      // 延迟一下，让扫描动画有足够时间显示
+      setIsGenerating(false);
       setTimeout(() => {
-        setIsGenerating(false);
         setShowScanningEffect(false);
       }, 2000);
     }
@@ -462,187 +587,197 @@ const HealthManagerPage: React.FC = () => {
   
   return (
     <PageContainer>
-      <Title>身体小管家</Title>
+      <Title>健康管理</Title>
       <Description>
-        记录孩子的饮食、运动和睡眠情况，获取个性化健康建议
+        记录您孩子的日常饮食、运动和睡眠情况，获取专业的健康建议
       </Description>
-      
+
       <FormContainer>
-        <FormSection>
-          <SectionTitle>三餐记录</SectionTitle>
-          <MealSection>
-            {/* 早餐 */}
-            <MealCard>
-              <MealTitle>早餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.breakfast.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.breakfast}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('breakfast', e)}
-                />
-                {healthData.meals.breakfast.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.breakfast.imagePreview}
-                    alt="早餐"
-                    className={healthData.meals.breakfast.imagePreview ? 'visible' : ''}
+        <form onSubmit={generateHealthAdvice}>
+          <FormSection>
+            <SectionTitle>三餐记录</SectionTitle>
+            <MealSection>
+              {/* 早餐 */}
+              <MealCard>
+                <MealTitle>早餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.breakfast.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.breakfast}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('breakfast', e)}
                   />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
-              <TextArea
-                placeholder="描述早餐内容，如：牛奶、面包、鸡蛋等"
-                value={healthData.meals.breakfast.description}
-                onChange={(e) => handleDescriptionChange('breakfast', e.target.value)}
-              />
-            </MealCard>
+                  {healthData.meals.breakfast.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.breakfast.imagePreview}
+                      alt="早餐"
+                      className={healthData.meals.breakfast.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述早餐内容，如：牛奶、面包、鸡蛋等"
+                  value={healthData.meals.breakfast.description}
+                  onChange={(e) => handleDescriptionChange('breakfast', e.target.value)}
+                />
+              </MealCard>
+              
+              {/* 午餐 */}
+              <MealCard>
+                <MealTitle>午餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.lunch.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.lunch}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('lunch', e)}
+                  />
+                  {healthData.meals.lunch.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.lunch.imagePreview}
+                      alt="午餐"
+                      className={healthData.meals.lunch.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述午餐内容，如：米饭、蔬菜、肉类等"
+                  value={healthData.meals.lunch.description}
+                  onChange={(e) => handleDescriptionChange('lunch', e.target.value)}
+                />
+              </MealCard>
+              
+              {/* 晚餐 */}
+              <MealCard>
+                <MealTitle>晚餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.dinner.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.dinner}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('dinner', e)}
+                  />
+                  {healthData.meals.dinner.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.dinner.imagePreview}
+                      alt="晚餐"
+                      className={healthData.meals.dinner.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述晚餐内容，如：面条、水果、汤等"
+                  value={healthData.meals.dinner.description}
+                  onChange={(e) => handleDescriptionChange('dinner', e.target.value)}
+                />
+              </MealCard>
+            </MealSection>
+          </FormSection>
+          
+          <FormSection>
+            <SectionTitle>运动情况</SectionTitle>
+            <InputGroup>
+              <Label>运动类型</Label>
+              <Select
+                value={healthData.exercise.type}
+                onChange={(e) => handleExerciseChange('type', e.target.value)}
+              >
+                {exerciseTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </Select>
+            </InputGroup>
             
-            {/* 午餐 */}
-            <MealCard>
-              <MealTitle>午餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.lunch.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.lunch}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('lunch', e)}
-                />
-                {healthData.meals.lunch.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.lunch.imagePreview}
-                    alt="午餐"
-                    className={healthData.meals.lunch.imagePreview ? 'visible' : ''}
-                  />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
-              <TextArea
-                placeholder="描述午餐内容，如：米饭、蔬菜、肉类等"
-                value={healthData.meals.lunch.description}
-                onChange={(e) => handleDescriptionChange('lunch', e.target.value)}
+            <InputGroup>
+              <Label>运动时长（分钟）</Label>
+              <Input
+                type="number"
+                placeholder="例如：30"
+                value={healthData.exercise.duration}
+                onChange={(e) => handleExerciseChange('duration', e.target.value)}
               />
-            </MealCard>
+            </InputGroup>
             
-            {/* 晚餐 */}
-            <MealCard>
-              <MealTitle>晚餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.dinner.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.dinner}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('dinner', e)}
-                />
-                {healthData.meals.dinner.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.dinner.imagePreview}
-                    alt="晚餐"
-                    className={healthData.meals.dinner.imagePreview ? 'visible' : ''}
-                  />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
+            <InputGroup>
+              <Label>补充描述（可选）</Label>
               <TextArea
-                placeholder="描述晚餐内容，如：面条、水果、汤等"
-                value={healthData.meals.dinner.description}
-                onChange={(e) => handleDescriptionChange('dinner', e.target.value)}
+                placeholder="补充描述运动情况，如：在公园跑步、参加了学校的篮球课等"
+                value={healthData.exercise.description}
+                onChange={(e) => handleExerciseChange('description', e.target.value)}
               />
-            </MealCard>
-          </MealSection>
-        </FormSection>
-        
-        <FormSection>
-          <SectionTitle>运动情况</SectionTitle>
-          <InputGroup>
-            <Label>运动类型</Label>
-            <Select
-              value={healthData.exercise.type}
-              onChange={(e) => handleExerciseChange('type', e.target.value)}
-            >
-              {exerciseTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </Select>
-          </InputGroup>
+            </InputGroup>
+          </FormSection>
           
-          <InputGroup>
-            <Label>运动时长（分钟）</Label>
-            <Input
-              type="number"
-              placeholder="例如：30"
-              value={healthData.exercise.duration}
-              onChange={(e) => handleExerciseChange('duration', e.target.value)}
-            />
-          </InputGroup>
-          
-          <InputGroup>
-            <Label>补充描述（可选）</Label>
-            <TextArea
-              placeholder="补充描述运动情况，如：在公园跑步、参加了学校的篮球课等"
-              value={healthData.exercise.description}
-              onChange={(e) => handleExerciseChange('description', e.target.value)}
-            />
-          </InputGroup>
-        </FormSection>
-        
-        <FormSection>
-          <SectionTitle>睡眠情况</SectionTitle>
-          <InputGroup>
-            <Label>睡眠时间段</Label>
-            <TimeInputContainer>
+          <FormSection>
+            <SectionTitle>睡眠情况</SectionTitle>
+            <InputGroup>
+              <Label>睡眠时间段</Label>
+              <TimeInputContainer>
+                <Input
+                  type="time"
+                  value={healthData.sleep.startTime}
+                  onChange={(e) => handleSleepChange('startTime', e.target.value)}
+                  onBlur={calculateSleepHours}
+                />
+                <span>至</span>
+                <Input
+                  type="time"
+                  value={healthData.sleep.endTime}
+                  onChange={(e) => handleSleepChange('endTime', e.target.value)}
+                  onBlur={calculateSleepHours}
+                />
+              </TimeInputContainer>
+            </InputGroup>
+            
+            <InputGroup>
+              <Label>总睡眠时长（小时）</Label>
               <Input
-                type="time"
-                value={healthData.sleep.startTime}
-                onChange={(e) => handleSleepChange('startTime', e.target.value)}
-                onBlur={calculateSleepHours}
+                type="number"
+                step="0.1"
+                placeholder="例如：9"
+                value={healthData.sleep.totalHours}
+                onChange={(e) => handleSleepChange('totalHours', e.target.value)}
               />
-              <span>至</span>
-              <Input
-                type="time"
-                value={healthData.sleep.endTime}
-                onChange={(e) => handleSleepChange('endTime', e.target.value)}
-                onBlur={calculateSleepHours}
-              />
-            </TimeInputContainer>
-          </InputGroup>
-          
-          <InputGroup>
-            <Label>总睡眠时长（小时）</Label>
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="例如：9"
-              value={healthData.sleep.totalHours}
-              onChange={(e) => handleSleepChange('totalHours', e.target.value)}
-            />
-          </InputGroup>
-        </FormSection>
-        
-        <GenerateButton
-          onClick={generateHealthAdvice}
-          disabled={isGenerating}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {isGenerating ? '生成中...' : '生成健康建议'}
-        </GenerateButton>
+            </InputGroup>
+          </FormSection>
+
+          <GenerateButton
+            onClick={generateHealthAdvice}
+            disabled={isGenerating}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {isGenerating ? (
+              <>
+                生成中
+                <ButtonLoadingSpinner />
+              </>
+            ) : (
+              '生成健康建议'
+            )}
+          </GenerateButton>
+        </form>
       </FormContainer>
       
-      {advice && (
+      {/* 健康建议部分 */}
+      {(regularAdvice || aiAdvice) && (
         <AdviceContainer>
           {showScanningEffect && (
             <ScanningLight
@@ -656,14 +791,104 @@ const HealthManagerPage: React.FC = () => {
               }}
             />
           )}
-          <AdviceTitle>健康建议</AdviceTitle>
+          <AdviceHeader>
+            <AdviceTitle>健康建议</AdviceTitle>
+            <AdviceTypeSelector>
+              <AdviceTypeButton
+                isActive={adviceType === 'regular'}
+                onClick={() => setAdviceType('regular')}
+              >
+                常规建议
+              </AdviceTypeButton>
+              <AdviceTypeButton
+                isActive={adviceType === 'ai'}
+                onClick={() => setAdviceType('ai')}
+              >
+                AI建议
+              </AdviceTypeButton>
+            </AdviceTypeSelector>
+          </AdviceHeader>
+          
           <AdviceContent>
-            {advice.split('\n').map((line, index) => (
-              <p key={index}>{highlightKeywords(line)}</p>
-            ))}
+            {adviceType === 'regular' ? (
+              <>
+                <AdviceSection theme="diet">
+                  <AdviceSectionTitle theme="diet">
+                    <DietIcon /> 饮食建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('早餐') || line.includes('午餐') || line.includes('晚餐') || line.includes('饮食'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="exercise">
+                  <AdviceSectionTitle theme="exercise">
+                    <ExerciseIcon /> 运动建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('运动') || line.includes('活动'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="sleep">
+                  <AdviceSectionTitle theme="sleep">
+                    <SleepIcon /> 睡眠建议
+                  </AdviceSectionTitle>
+                  {regularAdvice.split('\n')
+                    .filter(line => line.includes('睡眠') || line.includes('作息'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+              </>
+            ) : (
+              <>
+                <AdviceSection theme="diet">
+                  <AdviceSectionTitle theme="diet">
+                    <DietIcon /> 饮食建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('早餐') || line.includes('午餐') || line.includes('晚餐') || line.includes('饮食'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="exercise">
+                  <AdviceSectionTitle theme="exercise">
+                    <ExerciseIcon /> 运动建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('运动') || line.includes('活动'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+                
+                <AdviceSection theme="sleep">
+                  <AdviceSectionTitle theme="sleep">
+                    <SleepIcon /> 睡眠建议
+                  </AdviceSectionTitle>
+                  {aiAdvice.split('\n')
+                    .filter(line => line.includes('睡眠') || line.includes('作息'))
+                    .map((line, index) => (
+                      <p key={index}>{highlightKeywords(line)}</p>
+                    ))}
+                </AdviceSection>
+              </>
+            )}
           </AdviceContent>
         </AdviceContainer>
       )}
+
+      <ChartSection>
+        <SectionTitle>近一周健康状态趋势</SectionTitle>
+        <HealthChart />
+      </ChartSection>
     </PageContainer>
   );
 };
