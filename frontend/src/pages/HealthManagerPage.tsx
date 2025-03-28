@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import HealthChart from '../components/HealthChart';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -278,6 +279,11 @@ interface HealthData {
   };
 }
 
+const ChartSection = styled.div`
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+`;
+
 const HealthManagerPage: React.FC = () => {
   // 引用
   const fileInputRefs = {
@@ -308,6 +314,7 @@ const HealthManagerPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [advice, setAdvice] = useState<string>('');
   const [showScanningEffect, setShowScanningEffect] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   
   // 处理图片上传
   const handleImageUpload = (meal: 'breakfast' | 'lunch' | 'dinner', e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,14 +402,13 @@ const HealthManagerPage: React.FC = () => {
     }
   };
   
-  // 生成健康建议
   const generateHealthAdvice = async () => {
     setIsGenerating(true);
     setShowScanningEffect(true);
     setAdvice('');
-    
+    setError(null);
+
     try {
-      // 准备要发送的数据
       const formData = new FormData();
       
       // 添加三餐信息
@@ -422,26 +428,25 @@ const HealthManagerPage: React.FC = () => {
       formData.append('sleepStartTime', healthData.sleep.startTime);
       formData.append('sleepEndTime', healthData.sleep.endTime);
       formData.append('sleepTotalHours', healthData.sleep.totalHours);
-      
-      // 调用后端API
-      const response = await axios.post('/api/health-check', formData, {
+
+      const response = await axios.post('/api/health/coze-advice', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
       if (response.data.status === 'success') {
-        // 模拟接收到的健康建议数据
-        const adviceData = response.data.data.advice;
-        setAdvice(adviceData);
+        setAdvice(response.data.data.advice);
+      } else {
+        throw new Error(response.data.message || '获取建议失败');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('生成健康建议失败:', error);
-      // 如果API调用失败，使用模拟数据
-      setAdvice('根据您提供的信息，我们建议：\n1. 增加早餐的<蛋白质>摄入，可以考虑添加鸡蛋或豆制品。\n2. 您的<运动时间>略显不足，建议每天至少保持30分钟中等强度运动。\n3. <睡眠质量>可以通过睡前放松活动来提高，避免使用电子设备。');
+      setError(error.response?.data?.message || '生成建议时出错');
     } finally {
-      // 延迟一下，让扫描动画有足够时间显示
+      setIsGenerating(false);
+      // 延迟关闭扫描动画
       setTimeout(() => {
-        setIsGenerating(false);
         setShowScanningEffect(false);
       }, 2000);
     }
@@ -462,184 +467,186 @@ const HealthManagerPage: React.FC = () => {
   
   return (
     <PageContainer>
-      <Title>身体小管家</Title>
+      <Title>健康管理</Title>
       <Description>
-        记录孩子的饮食、运动和睡眠情况，获取个性化健康建议
+        记录您孩子的日常饮食、运动和睡眠情况，获取专业的健康建议
       </Description>
-      
+
       <FormContainer>
-        <FormSection>
-          <SectionTitle>三餐记录</SectionTitle>
-          <MealSection>
-            {/* 早餐 */}
-            <MealCard>
-              <MealTitle>早餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.breakfast.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.breakfast}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('breakfast', e)}
-                />
-                {healthData.meals.breakfast.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.breakfast.imagePreview}
-                    alt="早餐"
-                    className={healthData.meals.breakfast.imagePreview ? 'visible' : ''}
+        <form onSubmit={generateHealthAdvice}>
+          <FormSection>
+            <SectionTitle>三餐记录</SectionTitle>
+            <MealSection>
+              {/* 早餐 */}
+              <MealCard>
+                <MealTitle>早餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.breakfast.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.breakfast}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('breakfast', e)}
                   />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
-              <TextArea
-                placeholder="描述早餐内容，如：牛奶、面包、鸡蛋等"
-                value={healthData.meals.breakfast.description}
-                onChange={(e) => handleDescriptionChange('breakfast', e.target.value)}
-              />
-            </MealCard>
+                  {healthData.meals.breakfast.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.breakfast.imagePreview}
+                      alt="早餐"
+                      className={healthData.meals.breakfast.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述早餐内容，如：牛奶、面包、鸡蛋等"
+                  value={healthData.meals.breakfast.description}
+                  onChange={(e) => handleDescriptionChange('breakfast', e.target.value)}
+                />
+              </MealCard>
+              
+              {/* 午餐 */}
+              <MealCard>
+                <MealTitle>午餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.lunch.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.lunch}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('lunch', e)}
+                  />
+                  {healthData.meals.lunch.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.lunch.imagePreview}
+                      alt="午餐"
+                      className={healthData.meals.lunch.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述午餐内容，如：米饭、蔬菜、肉类等"
+                  value={healthData.meals.lunch.description}
+                  onChange={(e) => handleDescriptionChange('lunch', e.target.value)}
+                />
+              </MealCard>
+              
+              {/* 晚餐 */}
+              <MealCard>
+                <MealTitle>晚餐</MealTitle>
+                <ImageUploadContainer onClick={() => fileInputRefs.dinner.current?.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRefs.dinner}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload('dinner', e)}
+                  />
+                  {healthData.meals.dinner.imagePreview ? (
+                    <UploadedImage
+                      src={healthData.meals.dinner.imagePreview}
+                      alt="晚餐"
+                      className={healthData.meals.dinner.imagePreview ? 'visible' : ''}
+                    />
+                  ) : (
+                    <UploadIcon>
+                      <UploadIconSvg />
+                    </UploadIcon>
+                  )}
+                </ImageUploadContainer>
+                <TextArea
+                  placeholder="描述晚餐内容，如：面条、水果、汤等"
+                  value={healthData.meals.dinner.description}
+                  onChange={(e) => handleDescriptionChange('dinner', e.target.value)}
+                />
+              </MealCard>
+            </MealSection>
+          </FormSection>
+          
+          <FormSection>
+            <SectionTitle>运动情况</SectionTitle>
+            <InputGroup>
+              <Label>运动类型</Label>
+              <Select
+                value={healthData.exercise.type}
+                onChange={(e) => handleExerciseChange('type', e.target.value)}
+              >
+                {exerciseTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </Select>
+            </InputGroup>
             
-            {/* 午餐 */}
-            <MealCard>
-              <MealTitle>午餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.lunch.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.lunch}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('lunch', e)}
-                />
-                {healthData.meals.lunch.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.lunch.imagePreview}
-                    alt="午餐"
-                    className={healthData.meals.lunch.imagePreview ? 'visible' : ''}
-                  />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
-              <TextArea
-                placeholder="描述午餐内容，如：米饭、蔬菜、肉类等"
-                value={healthData.meals.lunch.description}
-                onChange={(e) => handleDescriptionChange('lunch', e.target.value)}
+            <InputGroup>
+              <Label>运动时长（分钟）</Label>
+              <Input
+                type="number"
+                placeholder="例如：30"
+                value={healthData.exercise.duration}
+                onChange={(e) => handleExerciseChange('duration', e.target.value)}
               />
-            </MealCard>
+            </InputGroup>
             
-            {/* 晚餐 */}
-            <MealCard>
-              <MealTitle>晚餐</MealTitle>
-              <ImageUploadContainer onClick={() => fileInputRefs.dinner.current?.click()}>
-                <input
-                  type="file"
-                  ref={fileInputRefs.dinner}
-                  style={{ display: 'none' }}
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload('dinner', e)}
-                />
-                {healthData.meals.dinner.imagePreview ? (
-                  <UploadedImage
-                    src={healthData.meals.dinner.imagePreview}
-                    alt="晚餐"
-                    className={healthData.meals.dinner.imagePreview ? 'visible' : ''}
-                  />
-                ) : (
-                  <UploadIcon>
-                    <UploadIconSvg />
-                  </UploadIcon>
-                )}
-              </ImageUploadContainer>
+            <InputGroup>
+              <Label>补充描述（可选）</Label>
               <TextArea
-                placeholder="描述晚餐内容，如：面条、水果、汤等"
-                value={healthData.meals.dinner.description}
-                onChange={(e) => handleDescriptionChange('dinner', e.target.value)}
+                placeholder="补充描述运动情况，如：在公园跑步、参加了学校的篮球课等"
+                value={healthData.exercise.description}
+                onChange={(e) => handleExerciseChange('description', e.target.value)}
               />
-            </MealCard>
-          </MealSection>
-        </FormSection>
-        
-        <FormSection>
-          <SectionTitle>运动情况</SectionTitle>
-          <InputGroup>
-            <Label>运动类型</Label>
-            <Select
-              value={healthData.exercise.type}
-              onChange={(e) => handleExerciseChange('type', e.target.value)}
-            >
-              {exerciseTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </Select>
-          </InputGroup>
+            </InputGroup>
+          </FormSection>
           
-          <InputGroup>
-            <Label>运动时长（分钟）</Label>
-            <Input
-              type="number"
-              placeholder="例如：30"
-              value={healthData.exercise.duration}
-              onChange={(e) => handleExerciseChange('duration', e.target.value)}
-            />
-          </InputGroup>
-          
-          <InputGroup>
-            <Label>补充描述（可选）</Label>
-            <TextArea
-              placeholder="补充描述运动情况，如：在公园跑步、参加了学校的篮球课等"
-              value={healthData.exercise.description}
-              onChange={(e) => handleExerciseChange('description', e.target.value)}
-            />
-          </InputGroup>
-        </FormSection>
-        
-        <FormSection>
-          <SectionTitle>睡眠情况</SectionTitle>
-          <InputGroup>
-            <Label>睡眠时间段</Label>
-            <TimeInputContainer>
+          <FormSection>
+            <SectionTitle>睡眠情况</SectionTitle>
+            <InputGroup>
+              <Label>睡眠时间段</Label>
+              <TimeInputContainer>
+                <Input
+                  type="time"
+                  value={healthData.sleep.startTime}
+                  onChange={(e) => handleSleepChange('startTime', e.target.value)}
+                  onBlur={calculateSleepHours}
+                />
+                <span>至</span>
+                <Input
+                  type="time"
+                  value={healthData.sleep.endTime}
+                  onChange={(e) => handleSleepChange('endTime', e.target.value)}
+                  onBlur={calculateSleepHours}
+                />
+              </TimeInputContainer>
+            </InputGroup>
+            
+            <InputGroup>
+              <Label>总睡眠时长（小时）</Label>
               <Input
-                type="time"
-                value={healthData.sleep.startTime}
-                onChange={(e) => handleSleepChange('startTime', e.target.value)}
-                onBlur={calculateSleepHours}
+                type="number"
+                step="0.1"
+                placeholder="例如：9"
+                value={healthData.sleep.totalHours}
+                onChange={(e) => handleSleepChange('totalHours', e.target.value)}
               />
-              <span>至</span>
-              <Input
-                type="time"
-                value={healthData.sleep.endTime}
-                onChange={(e) => handleSleepChange('endTime', e.target.value)}
-                onBlur={calculateSleepHours}
-              />
-            </TimeInputContainer>
-          </InputGroup>
-          
-          <InputGroup>
-            <Label>总睡眠时长（小时）</Label>
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="例如：9"
-              value={healthData.sleep.totalHours}
-              onChange={(e) => handleSleepChange('totalHours', e.target.value)}
-            />
-          </InputGroup>
-        </FormSection>
-        
-        <GenerateButton
-          onClick={generateHealthAdvice}
-          disabled={isGenerating}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {isGenerating ? '生成中...' : '生成健康建议'}
-        </GenerateButton>
+            </InputGroup>
+          </FormSection>
+
+          <GenerateButton
+            onClick={generateHealthAdvice}
+            disabled={isGenerating}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {isGenerating ? '生成中...' : '生成健康建议'}
+          </GenerateButton>
+        </form>
       </FormContainer>
       
       {advice && (
@@ -664,6 +671,11 @@ const HealthManagerPage: React.FC = () => {
           </AdviceContent>
         </AdviceContainer>
       )}
+
+      <ChartSection>
+        <SectionTitle>近一周健康状态趋势</SectionTitle>
+        <HealthChart />
+      </ChartSection>
     </PageContainer>
   );
 };
