@@ -3,10 +3,14 @@ import axios from 'axios';
 import { Configuration, OpenAIApi } from 'openai';
 
 // 配置OpenAI API
-console.log('当前使用的OpenAI API密钥:', process.env.OPENAI_API_KEY);
+console.log('环境变量加载情况:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PWD: process.env.PWD,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY ? '已设置' : 'undefined'
+});
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
-  basePath: "https://www.blueshirtmap.com/v1"
+  basePath: "https://api.302ai.cn/v1"  // 改回基础路径
 });
 
 // 设置全局代理
@@ -29,6 +33,7 @@ const openai = new OpenAIApi(configuration);
  * @param req 请求对象，包含target(诉说对象)、message(想说的话)和style(图片风格)
  * @param res 响应对象
  */
+// 修改图片生成请求
 export const generateImage = async (req: Request, res: Response) => {
   try {
     const { target, message, style } = req.body;
@@ -55,13 +60,18 @@ let retries = 3;
 let response;
 while (retries > 0) {
   try {
-    response = await openai.createImage({
+    response = await axios.post('https://api.302ai.cn/v1/images/generations', {
       prompt,
       n: 1,
       size: "1024x1024",
-      model: "dall-e-3", // 使用最新的DALL-E 3模型
-      quality: "standard", // 设置图像质量
-      style: "natural" // 设置生成风格
+      model: "dall-e-3",
+      quality: "standard",
+      style: "natural"
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
     break; // 如果成功，跳出循环
   } catch (error) {

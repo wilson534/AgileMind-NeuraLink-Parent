@@ -1,15 +1,8 @@
-import express from 'express';
-import multer from 'multer';
+import { Router } from 'express';
 import { generateImage } from '../controllers/imageController';
 
-const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const router = Router();
 
-/**
- * @route POST /api/image/generate
- * @desc 根据文本生成图片
- * @access Public
- */
-router.post('/generate', upload.none(), generateImage);
+router.post('/generate', generateImage);  // 确保 generateImage 被正确导出和导入
 
 export default router;
