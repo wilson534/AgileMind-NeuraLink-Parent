@@ -1,0 +1,10 @@
+{
+  "presets": [
+    ["@babel/preset-env", { "loose": true }],
+    ["@babel/preset-react", { "runtime": "automatic" }],
+    ["@babel/preset-typescript", { "allowDeclareFields": true, "onlyRemoveTypeImports": true, "allowNamespaces": true, "optimizeConstEnums": true, "allowNamespaces": true }]
+  ],
+  "plugins": [
+    ["@babel/plugin-transform-typescript", { "allowDeclareFields": true, "onlyRemoveTypeImports": true, "allowNamespaces": true }]
+  ]
+}

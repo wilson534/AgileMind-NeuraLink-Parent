@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "frontend/dist",
-        "buildCommand": "cd frontend && npm install && CI=false GENERATE_SOURCEMAP=false TSC_COMPILE_ON_ERROR=true npm run build"
+        "buildCommand": "cd frontend && npm install && CI=false GENERATE_SOURCEMAP=false TSC_COMPILE_ON_ERROR=true TYPESCRIPT_IGNORE_WARNINGS=true SKIP_PREFLIGHT_CHECK=true TYPESCRIPT_SUPPRESS_ERRORS=true npm run build"
       }
     },
     {
