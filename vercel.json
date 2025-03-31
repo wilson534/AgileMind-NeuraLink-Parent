@@ -1,36 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist",
-        "buildCommand": "cd frontend && npm install && CI=false GENERATE_SOURCEMAP=false TSC_COMPILE_ON_ERROR=true TYPESCRIPT_IGNORE_WARNINGS=true SKIP_PREFLIGHT_CHECK=true TYPESCRIPT_SUPPRESS_ERRORS=true npm run build"
-      }
-    },
-    {
-      "src": "backend/src/main.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["backend/**"]
-      }
-    }
+  "buildCommand": "cd frontend && npm install && npm install vite-tsconfig-paths && CI=false GENERATE_SOURCEMAP=false TSC_COMPILE_ON_ERROR=true TYPESCRIPT_IGNORE_WARNINGS=true SKIP_PREFLIGHT_CHECK=true TYPESCRIPT_SUPPRESS_ERRORS=true npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "frontend/dist/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/dist/index.html"
+  "functions": {
+    "api/**": {
+      "runtime": "@vercel/node@2.0.0"
     }
-  ],
+  },
   "env": {
     "OPENAI_API_KEY": "${OPENAI_API_KEY}",
     "COZE_API_KEY": "${COZE_API_KEY}",
