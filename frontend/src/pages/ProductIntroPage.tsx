@@ -390,8 +390,8 @@ const ProductIntroPage: React.FC = () => {
       icon: <VoiceIcon />
     },
     {
-      title: "家长之声",
-      description: "分享育儿经验和心得，获取专业指导和建议，与其他家长交流互动，共同成长。",
+      title: "家长信箱",
+      description: "接收孩子通过AI玩偶发送的消息，查看对话记录，设置提醒与干预，保持与孩子的紧密联系。",
       icon: <InteractionIcon />
     },
     {

@@ -145,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/daily-report', label: '每日报告' },
     { path: '/emotion-chart', label: '情绪图表' },
     { path: '/health-manager', label: '身体小管家' },
-    { path: '/parent-voice', label: '家长之声' },
+    { path: '/parent-voice', label: '家长信箱' },
     { path: '/community', label: '社区交流' },
     { path: '/image-gen', label: '文生图' },
     { path: '/voice-clone', label: '声音克隆' },

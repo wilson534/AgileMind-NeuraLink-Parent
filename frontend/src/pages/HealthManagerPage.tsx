@@ -549,7 +549,7 @@ const HealthManagerPage: React.FC = () => {
       });
 
       // 获取AI建议
-      const aiResponse = await axios.post('/api/health/coze-advice', formData, {
+      const aiResponse = await axios.post('/api/health/gpt-advice', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -593,7 +593,7 @@ const HealthManagerPage: React.FC = () => {
       </Description>
 
       <FormContainer>
-        <form onSubmit={generateHealthAdvice}>
+        <form onSubmit={(e) => e.preventDefault()}>
           <FormSection>
             <SectionTitle>三餐记录</SectionTitle>
             <MealSection>

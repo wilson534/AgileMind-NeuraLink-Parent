@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="90" fill="#f5f5dc" />
+  <circle cx="100" cy="85" r="70" fill="#f0e6d2" />
+  <!-- 头发 - 优雅的中长发 -->
+  <path d="M50 70 Q70 40 100 40 Q130 40 150 70" fill="#3a2718" stroke="#2a1708" stroke-width="2" />
+  <!-- 侧边头发 - 更整齐 -->
+  <path d="M40 90 Q60 60 80 60" fill="none" stroke="#3a2718" stroke-width="4" />
+  <path d="M160 90 Q140 60 120 60" fill="none" stroke="#3a2718" stroke-width="4" />
+  <!-- 长发 - 优雅波浪 -->
+  <path d="M40 90 Q45 110 50 130 Q55 145 60 160" fill="none" stroke="#3a2718" stroke-width="4" />
+  <path d="M160 90 Q155 110 150 130 Q145 145 140 160" fill="none" stroke="#3a2718" stroke-width="4" />
+  <!-- 刘海 - 端庄的刘海 -->
+  <path d="M70 60 Q85 65 100 60 Q115 65 130 60" fill="#3a2718" stroke="#2a1708" stroke-width="2" />
+  <!-- 发簪 -->
+  <path d="M130 70 L140 60" stroke="#8b4513" stroke-width="2" />
+  <circle cx="140" cy="60" r="3" fill="#cd7f32" />
+  <!-- 眼睛 -->
+  <ellipse cx="75" cy="90" rx="10" ry="7" fill="white" stroke="#333" stroke-width="1" />
+  <ellipse cx="125" cy="90" rx="10" ry="7" fill="white" stroke="#333" stroke-width="1" />
+  <circle cx="75" cy="90" r="3.5" fill="#483d8b" />
+  <circle cx="125" cy="90" r="3.5" fill="#483d8b" />
+  <!-- 眉毛 - 优雅弧度 -->
+  <path d="M65 75 Q75 71 85 75" fill="none" stroke="#333" stroke-width="1.5" />
+  <path d="M115 75 Q125 71 135 75" fill="none" stroke="#333" stroke-width="1.5" />
+  <!-- 嘴巴 - 温和微笑 -->
+  <path d="M85 120 Q100 127 115 120" fill="none" stroke="#a52a2a" stroke-width="2" />
+  <!-- 项链 -->
+  <path d="M85 160 Q100 170 115 160" fill="none" stroke="#ffd700" stroke-width="1.5" />
+  <circle cx="100" cy="165" r="3" fill="#ffd700" />
+  <!-- 腮红 - 淡雅 -->
+  <ellipse cx="65" cy="105" rx="12" ry="7" fill="#e8a798" opacity="0.2" />
+  <ellipse cx="135" cy="105" rx="12" ry="7" fill="#e8a798" opacity="0.2" />
+</svg>

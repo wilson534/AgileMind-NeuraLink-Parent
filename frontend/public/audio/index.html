@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音频生成器</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #6a5acd;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #5a4abf;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>爸爸声音生成器</h1>
+    <p>点击下方按钮生成爸爸的声音样本</p>
+    <button id="generateDad">生成爸爸声音</button>
+    <button id="stop">停止</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    // 使用Web Audio API生成爸爸声音
+    document.getElementById('generateDad').addEventListener('click', async function() {
+      // 请求用户授权音频上下文
+      await Tone.start();
+      const statusElement = document.getElementById('status');
+      statusElement.textContent = "正在播放爸爸声音...";
+      
+      // 创建合成器
+      const synth = new Tone.MonoSynth({
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.1,
+          decay: 0.2,
+          sustain: 0.5,
+          release: 0.8
+        }
+      }).toDestination();
+      
+      // 设置较低的音高以模拟爸爸的声音
+      synth.volume.value = -6;
+      
+      // 创建语音效果
+      const pattern = new Tone.Pattern((time, note) => {
+        synth.triggerAttackRelease(note, "8n", time);
+      }, ["C2", "E2", "G2", "A2", "C3"]);
+      
+      // 设置速度
+      Tone.Transport.bpm.value = 80;
+      
+      // 开始播放
+      pattern.start(0);
+      Tone.Transport.start();
+      
+      // 创建一个低频振荡器模拟说话的效果
+      const lfo = new Tone.LFO({
+        frequency: 4,
+        min: -10,
+        max: -4
+      }).connect(synth.volume);
+      lfo.start();
+      
+      // 5秒后停止
+      setTimeout(() => {
+        pattern.stop();
+        Tone.Transport.stop();
+        lfo.stop();
+        statusElement.textContent = "播放完成";
+        
+        // 创建音频文件下载链接
+        const downloadLink = document.createElement('a');
+        downloadLink.href = 'dad_sample.mp3'; // 指向静态文件
+        downloadLink.textContent = '下载爸爸声音样本';
+        downloadLink.style.display = 'block';
+        downloadLink.style.margin = '20px auto';
+        statusElement.appendChild(downloadLink);
+      }, 5000);
+    });
+    
+    // 停止按钮
+    document.getElementById('stop').addEventListener('click', function() {
+      Tone.Transport.stop();
+      document.getElementById('status').textContent = "已停止";
+    });
+    
+    // 生成虚拟的音频文件URL
+    function createAudioFile() {
+      // 在实际应用中，这里应该生成真实的音频文件
+      // 这里我们只是模拟这个过程
+      return 'data:audio/mp3;base64,AAAAAAAAAAAAAAAAAAAAAA==';
+    }
+  </script>
+</body>
+</html>

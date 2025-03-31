@@ -303,6 +303,160 @@ const SectionTitle = styled.h2`
   font-weight: 600;
 `;
 
+const ChildMessagesContainer = styled.div`
+  margin-top: 2rem;
+`;
+
+const MessagesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const MessageCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.3s;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-3px);
+  }
+`;
+
+const MessageHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const UnreadBadge = styled.span`
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+`;
+
+const MessageContent = styled.p`
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  white-space: pre-wrap;
+`;
+
+const MessageFooter = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ReplyButton = styled.button`
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const MessageStatus = styled.span`
+  color: #999;
+  font-size: 0.875rem;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+`;
+
+const EmptyIcon = styled.div`
+  margin-bottom: 1.5rem;
+  color: #ccc;
+`;
+
+const EmptyText = styled.h3`
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+`;
+
+const EmptyDescription = styled.p`
+  color: #999;
+  text-align: center;
+  max-width: 300px;
+`;
+
+const MessageDetailModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const MessageDetailContent = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+`;
+
+const MessageDetailHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  
+  &:hover {
+    color: var(--primary-color);
+  }
+`;
+
+const SectionDescription = styled.p`
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  line-height: 1.5;
+`;
+
 const ReminderForm = styled.form`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -459,7 +613,7 @@ const mockConversations = [
 ];
 
 const ParentVoicePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'conversations' | 'reminders'>('conversations');
+  const [activeTab, setActiveTab] = useState<'conversations' | 'reminders' | 'childMessages'>('conversations');
   const [dateFilter, setDateFilter] = useState('all');
   const [emotionFilter, setEmotionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -469,6 +623,44 @@ const ParentVoicePage: React.FC = () => {
   const [savedReminders, setSavedReminders] = useState<Array<{id: number; title: string; date: string; time: string; content: string}>>([]);
   const [conversations, setConversations] = useState(mockConversations);
   const [expandedConversation, setExpandedConversation] = useState<number | null>(null);
+  
+  // 孩子的话相关状态
+  const [childMessages, setChildMessages] = useState<Array<{
+    id: number;
+    content: string;
+    date: string;
+    time: string;
+    read: boolean;
+    replied: boolean;
+    emotion: string;
+  }>>([{
+    id: 1,
+    content: "妈妈，今天我在学校学会了一首新歌，好想唱给你听！",
+    date: getCurrentDate(),
+    time: "15:30",
+    read: false,
+    replied: false,
+    emotion: "开心"
+  }, {
+    id: 2,
+    content: "爸爸，我今天在美术课上画了一幅画，老师说画得很棒，我想把它送给你！",
+    date: getDateBefore(1),
+    time: "16:45",
+    read: false,
+    replied: false,
+    emotion: "自豪"
+  }, {
+    id: 3,
+    content: "妈妈，我想你了，什么时候回家呀？",
+    date: getDateBefore(2),
+    time: "19:20",
+    read: true,
+    replied: true,
+    emotion: "想念"
+  }]);
+  const [viewingMessageId, setViewingMessageId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
   
   // 表单状态
   const [reminderTitle, setReminderTitle] = useState('');
@@ -590,11 +782,35 @@ const ParentVoicePage: React.FC = () => {
     setInterventionResponse('');
   };
   
+  // 处理回复孩子的消息
+  const handleReplyMessage = (messageId: number) => {
+    // 在实际应用中，这里会打开一个回复对话框
+    // 简化版本：将消息标记为已读和已回复
+    setChildMessages(prev => 
+      prev.map(msg => 
+        msg.id === messageId ? { ...msg, read: true, replied: true } : msg
+      )
+    );
+    
+    // 实际项目中这里会调用API发送回复
+    // api.post(`/api/child-messages/${messageId}/reply`, { content: replyText })
+    //   .then(response => {
+    //     // 处理成功回复
+    //     alert('回复已发送给孩子');
+    //   })
+    //   .catch(error => console.error('回复消息失败:', error));
+    
+    // 模拟成功响应
+    setTimeout(() => {
+      alert('回复已成功发送给孩子');
+    }, 500);
+  };
+  
   return (
     <PageContainer>
-      <Title>家长之声</Title>
+      <Title>家长信箱</Title>
       <Description>
-        查看孩子与小熊的对话记录，设置重要事项提醒，个性化管理AI回复逻辑
+        查看孩子与小熊的对话记录，设置重要事项提醒，接收孩子发来的消息，个性化管理AI回复逻辑
       </Description>
       
       <TabContainer>
@@ -609,6 +825,12 @@ const ParentVoicePage: React.FC = () => {
           onClick={() => setActiveTab('reminders')}
         >
           提醒与干预
+        </Tab>
+        <Tab 
+          $isActive={activeTab === 'childMessages'}
+          onClick={() => setActiveTab('childMessages')}
+        >
+          孩子的话
         </Tab>
       </TabContainer>
       
@@ -729,6 +951,208 @@ const ParentVoicePage: React.FC = () => {
             )}
           </ConversationsContainer>
         </>
+      )}
+      
+      {activeTab === 'childMessages' && (
+        <div>
+          <SectionTitle>孩子的话</SectionTitle>
+          <div style={{ marginBottom: '1rem', color: '#666' }}>
+            这里显示孩子通过AI玩偶向您发送的消息，让您随时了解孩子的想法和需求。
+          </div>
+          
+          {/* 消息详情模态框 */}
+          {viewingMessageId !== null && (
+            <MessageDetailModal onClick={() => {
+              // 关闭详情模态框时，将消息标记为已读
+              setChildMessages(prev => 
+                prev.map(msg => 
+                  msg.id === viewingMessageId ? { ...msg, read: true } : msg
+                )
+              );
+              setViewingMessageId(null);
+            }}>
+              <MessageDetailContent onClick={(e) => e.stopPropagation()}>
+                <MessageDetailHeader>
+                  <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--primary-color)' }}>消息详情</h2>
+                  <CloseButton onClick={() => {
+                    // 关闭详情模态框时，将消息标记为已读
+                    setChildMessages(prev => 
+                      prev.map(msg => 
+                        msg.id === viewingMessageId ? { ...msg, read: true } : msg
+                      )
+                    );
+                    setViewingMessageId(null);
+                  }}>
+                    &times;
+                  </CloseButton>
+                </MessageDetailHeader>
+                
+                {childMessages.find(msg => msg.id === viewingMessageId) && (
+                  <div>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      marginBottom: '1rem',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: '500', fontSize: '1.1rem' }}>
+                          {childMessages.find(msg => msg.id === viewingMessageId)?.date} 
+                          {childMessages.find(msg => msg.id === viewingMessageId)?.time}
+                        </div>
+                      </div>
+                      <span style={{ 
+                        padding: '0.25rem 0.75rem', 
+                        backgroundColor: childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '开心' ? '#E0F7FA' : 
+                                        childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '自豪' ? '#E8F5E9' : 
+                                        childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '想念' ? '#FFF3E0' : '#F3E5F5',
+                        borderRadius: '12px',
+                        fontSize: '0.9rem',
+                        color: childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '开心' ? '#00ACC1' : 
+                               childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '自豪' ? '#43A047' : 
+                               childMessages.find(msg => msg.id === viewingMessageId)?.emotion === '想念' ? '#FF9800' : '#9C27B0'
+                      }}>
+                        {childMessages.find(msg => msg.id === viewingMessageId)?.emotion}
+                      </span>
+                    </div>
+                    
+                    <div style={{ 
+                      fontSize: '1.2rem', 
+                      lineHeight: '1.8', 
+                      padding: '1.5rem', 
+                      backgroundColor: '#f8f9fa', 
+                      borderRadius: '12px',
+                      marginBottom: '1.5rem'
+                    }}>
+                      {childMessages.find(msg => msg.id === viewingMessageId)?.content}
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                      <PrimaryButton onClick={() => {
+                        const message = childMessages.find(msg => msg.id === viewingMessageId);
+                        if (message) {
+                          setActiveMessageId(message.id);
+                          setReplyText('');
+                          setViewingMessageId(null);
+                        }
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        回复消息
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                )}
+              </MessageDetailContent>
+            </MessageDetailModal>
+          )}
+          
+          {childMessages.length > 0 ? (
+            <ChildMessagesContainer>
+              <MessagesList>
+                {childMessages.map(message => (
+                  <MessageCard 
+                    key={message.id} 
+                    onClick={() => {
+                      setViewingMessageId(message.id);
+                    }}
+                  >
+                    <MessageHeader>
+                      <div>
+                        <span style={{ fontWeight: '500', fontSize: '1.1rem' }}>{message.date} {message.time}</span>
+                        {!message.read && <UnreadBadge style={{ marginLeft: '1rem' }}>未读</UnreadBadge>}
+                      </div>
+                      <span style={{ 
+                        padding: '0.25rem 0.75rem', 
+                        backgroundColor: message.emotion === '开心' ? '#E0F7FA' : 
+                                        message.emotion === '自豪' ? '#E8F5E9' : 
+                                        message.emotion === '想念' ? '#FFF3E0' : '#F3E5F5',
+                        borderRadius: '12px',
+                        fontSize: '0.9rem',
+                        color: message.emotion === '开心' ? '#00ACC1' : 
+                               message.emotion === '自豪' ? '#43A047' : 
+                               message.emotion === '想念' ? '#FF9800' : '#9C27B0'
+                      }}>
+                        {message.emotion}
+                      </span>
+                    </MessageHeader>
+                    
+                    <MessageContent>
+                      {message.content}
+                    </MessageContent>
+                    
+                    <MessageFooter>
+                      <ReplyButton 
+                        onClick={(e) => {
+                          e.stopPropagation(); // 阻止事件冒泡，避免触发卡片点击事件
+                          setActiveMessageId(message.id);
+                          setReplyText('');
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        回复消息
+                      </ReplyButton>
+                      <MessageStatus>
+                        {message.replied ? '已回复' : '未回复'}
+                      </MessageStatus>
+                    </MessageFooter>
+                    
+                    {activeMessageId === message.id && (
+                      <div 
+                        style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px' }}
+                        onClick={(e) => e.stopPropagation()} // 阻止事件冒泡，避免触发卡片点击事件
+                      >
+                        <div style={{ marginBottom: '0.5rem', fontWeight: '500' }}>回复消息</div>
+                        <Textarea 
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="输入回复内容..."
+                          style={{ marginBottom: '1rem' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                          <SecondaryButton onClick={(e) => {
+                            e.stopPropagation(); // 阻止事件冒泡
+                            setActiveMessageId(null);
+                          }}>
+                            取消
+                          </SecondaryButton>
+                          <PrimaryButton onClick={(e) => {
+                            e.stopPropagation(); // 阻止事件冒泡
+                            if (replyText.trim()) {
+                              handleReplyMessage(message.id);
+                              setChildMessages(prev => 
+                                prev.map(msg => 
+                                  msg.id === message.id ? { ...msg, read: true, replied: true } : msg
+                                )
+                              );
+                              setActiveMessageId(null);
+                              setReplyText('');
+                            }
+                          }}>
+                            发送回复
+                          </PrimaryButton>
+                        </div>
+                      </div>
+                    )}
+                  </MessageCard>
+                ))}
+              </MessagesList>
+            </ChildMessagesContainer>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#999', backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h3 style={{ fontWeight: '500', marginBottom: '0.5rem' }}>暂无消息</h3>
+              <p>当孩子想念您时，会通过AI玩偶向您发送消息</p>
+            </div>
+          )}
+        </div>
       )}
       
       {activeTab === 'reminders' && (

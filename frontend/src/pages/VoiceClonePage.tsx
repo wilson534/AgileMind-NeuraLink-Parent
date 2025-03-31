@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import api from '../utils/api';
+import { Howl, Howler } from 'howler';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -422,6 +423,7 @@ const BearMouth = styled(motion.div)<{ $isOpen: boolean }>`
   transform: translateX(-50%);
   overflow: hidden;
   transition: all 0.3s;
+  transform-origin: center;
   
   /* 添加舌头元素 */
   &::after {
@@ -501,11 +503,18 @@ interface AudioFile {
   duration: number;
 }
 
+interface VoiceTemplate {
+  id: string;
+  name: string;
+  description: string;
+  audioUrl: string;
+}
+
 const VoiceClonePage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('mom');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('dad');
   const [selectedEmotion, setSelectedEmotion] = useState<string>('comfort');
   const [originalAudio, setOriginalAudio] = useState<AudioFile | null>(null);
   const [clonedAudio, setClonedAudio] = useState<AudioFile | null>(null);
@@ -517,17 +526,74 @@ const VoiceClonePage: React.FC = () => {
   const [clonedProgress, setClonedProgress] = useState<number>(0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const originalAudioRef = useRef<HTMLAudioElement | null>(null);
-  const clonedAudioRef = useRef<HTMLAudioElement | null>(null);
   const originalIntervalRef = useRef<number | null>(null);
   const clonedIntervalRef = useRef<number | null>(null);
+  const originalSoundRef = useRef<Howl | null>(null);
+  const clonedSoundRef = useRef<Howl | null>(null);
+  const lastMouthUpdateRef = useRef<number>(0);
   
-  // 模拟模板数据
+  // 家庭成员角色模板数据
   const templates: Template[] = [
-    { id: 'mom', name: '妈妈', image: 'https://source.unsplash.com/random/100x100?woman' },
-    { id: 'dad', name: '爸爸', image: 'https://source.unsplash.com/random/100x100?man' },
-    { id: 'grandpa', name: '爷爷', image: 'https://source.unsplash.com/random/100x100?grandpa' },
-    { id: 'grandma', name: '奶奶', image: 'https://source.unsplash.com/random/100x100?grandma' },
+    { id: 'grandpa', name: '爷爷', image: '/images/avatars/grandpa.svg' },
+    { id: 'grandma', name: '奶奶', image: '/images/avatars/grandma.svg' },
+    { id: 'dad', name: '爸爸', image: '/images/avatars/dad.svg' },
+    { id: 'mom', name: '妈妈', image: '/images/avatars/mom.svg' },
+    { id: 'brother', name: '哥哥', image: '/images/avatars/brother.svg' },
+    { id: 'sister', name: '姐姐', image: '/images/avatars/sister.svg' },
+    { id: 'uncle', name: '叔叔', image: '/images/avatars/uncle.svg' },
+    { id: 'aunt', name: '阿姨', image: '/images/avatars/aunt.svg' },
+  ];
+  
+  // 家庭成员声音模板数据
+  const voiceTemplates: VoiceTemplate[] = [
+    { 
+      id: 'grandpa', 
+      name: '爷爷', 
+      description: '温和慈祥的声音，适合讲故事和传授经验', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'grandma', 
+      name: '奶奶', 
+      description: '温暖亲切的声音，适合表达关爱和安慰', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'dad', 
+      name: '爸爸', 
+      description: '稳重有力的声音，适合鼓励和指导', 
+      audioUrl: '/audio/dad_sample.mp3' 
+    },
+    { 
+      id: 'mom', 
+      name: '妈妈', 
+      description: '温柔体贴的声音，适合安慰和关怀', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'brother', 
+      name: '哥哥', 
+      description: '活力四射的声音，适合鼓励和陪伴', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'sister', 
+      name: '姐姐', 
+      description: '温柔耐心的声音，适合指导和关心', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'uncle', 
+      name: '叔叔', 
+      description: '亲切幽默的声音，适合讲故事和教导', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
+    { 
+      id: 'aunt', 
+      name: '阿姨', 
+      description: '和蔼可亲的声音，适合关怀和鼓励', 
+      audioUrl: '/audio/dad_sample.mp3' // 暂时使用爸爸的声音样本
+    },
   ];
   
   // 情感标签
@@ -582,15 +648,52 @@ const VoiceClonePage: React.FC = () => {
       // 创建音频URL
       const audioUrl = URL.createObjectURL(file);
       
-      // 获取音频时长
-      const audio = new Audio(audioUrl);
-      audio.addEventListener('loadedmetadata', () => {
+      // 检查文件类型
+      const isVideoFile = file.type.startsWith('video/');
+      
+      if (isVideoFile) {
+        // 对于视频文件，直接设置originalAudio状态，使用默认时长
+        console.log('视频文件已上传:', file.name);
         setOriginalAudio({
           name: file.name,
           url: audioUrl,
-          duration: audio.duration
+          duration: 30 // 设置默认时长为30秒
         });
-      });
+      } else {
+        // 使用Howler获取音频时长
+        const tempSound = new Howl({
+          src: [audioUrl],
+          html5: true,
+          onload: () => {
+            setOriginalAudio({
+              name: file.name,
+              url: audioUrl,
+              duration: tempSound.duration()
+            });
+          },
+          onloaderror: () => {
+            console.error('音频加载失败:', file.name);
+            // 即使加载失败，也设置originalAudio状态，使用默认时长
+            setOriginalAudio({
+              name: file.name,
+              url: audioUrl,
+              duration: 30 // 设置默认时长为30秒
+            });
+          }
+        });
+        
+        // 添加超时处理，确保即使Howler回调没有触发，也能设置originalAudio状态
+        setTimeout(() => {
+          if (!originalAudio) {
+            console.log('Howler回调超时，使用默认设置');
+            setOriginalAudio({
+              name: file.name,
+              url: audioUrl,
+              duration: 30 // 设置默认时长为30秒
+            });
+          }
+        }, 2000);
+      }
     }, 3000);
   };
   
@@ -607,28 +710,39 @@ const VoiceClonePage: React.FC = () => {
   useEffect(() => {
     if (!originalAudio) return;
     
-    if (!originalAudioRef.current) {
-      originalAudioRef.current = new Audio(originalAudio.url);
+    // 使用Howler.js创建音频对象
+    if (!originalSoundRef.current) {
+      originalSoundRef.current = new Howl({
+        src: [originalAudio.url],
+        html5: true,
+        onplay: () => {
+          setIsPlayingOriginal(true);
+        },
+        onpause: () => {
+          setIsPlayingOriginal(false);
+        },
+        onend: () => {
+          setIsPlayingOriginal(false);
+        },
+        onstop: () => {
+          setIsPlayingOriginal(false);
+        }
+      });
     }
     
     if (isPlayingOriginal) {
-      originalAudioRef.current.play();
+      originalSoundRef.current.play();
       
       // 设置进度更新定时器
       originalIntervalRef.current = window.setInterval(() => {
-        if (originalAudioRef.current) {
-          const currentTime = originalAudioRef.current.currentTime;
-          const duration = originalAudioRef.current.duration;
+        if (originalSoundRef.current) {
+          const currentTime = originalSoundRef.current.seek() as number;
+          const duration = originalSoundRef.current.duration();
           setOriginalProgress((currentTime / duration) * 100);
-          
-          // 检查是否播放完毕
-          if (currentTime >= duration) {
-            setIsPlayingOriginal(false);
-          }
         }
       }, 100);
     } else {
-      originalAudioRef.current.pause();
+      originalSoundRef.current.pause();
       
       // 清除进度更新定时器
       if (originalIntervalRef.current) {
@@ -649,31 +763,69 @@ const VoiceClonePage: React.FC = () => {
   useEffect(() => {
     if (!clonedAudio) return;
     
-    if (!clonedAudioRef.current) {
-      clonedAudioRef.current = new Audio(clonedAudio.url);
+    // 使用Howler.js创建音频对象
+    if (!clonedSoundRef.current) {
+      clonedSoundRef.current = new Howl({
+        src: [clonedAudio.url],
+        html5: true,
+        preload: true,
+        format: ['mp3'],
+        buffer: true, // 启用音频缓冲
+        onload: () => {
+          console.log('克隆音频加载完成');
+        },
+        onplay: () => {
+          setIsPlayingCloned(true);
+          setIsMouthOpen(true);
+          console.log('开始播放克隆音频');
+        },
+        onpause: () => {
+          setIsPlayingCloned(false);
+          setIsMouthOpen(false);
+          console.log('暂停播放克隆音频');
+        },
+        onend: () => {
+          setIsPlayingCloned(false);
+          setIsMouthOpen(false);
+          console.log('克隆音频播放结束');
+        },
+        onstop: () => {
+          setIsPlayingCloned(false);
+          setIsMouthOpen(false);
+          console.log('停止播放克隆音频');
+        },
+        onseek: () => {
+          if (clonedSoundRef.current && clonedSoundRef.current.playing()) {
+            setIsMouthOpen(true);
+          }
+        }
+      });
     }
     
     if (isPlayingCloned) {
-      clonedAudioRef.current.play();
-      setIsMouthOpen(true);
+      clonedSoundRef.current.play();
       
       // 设置进度更新定时器
       clonedIntervalRef.current = window.setInterval(() => {
-        if (clonedAudioRef.current) {
-          const currentTime = clonedAudioRef.current.currentTime;
-          const duration = clonedAudioRef.current.duration;
+        if (clonedSoundRef.current) {
+          const currentTime = clonedSoundRef.current.seek() as number;
+          const duration = clonedSoundRef.current.duration();
           setClonedProgress((currentTime / duration) * 100);
           
-          // 检查是否播放完毕
-          if (currentTime >= duration) {
-            setIsPlayingCloned(false);
-            setIsMouthOpen(false);
+          // 根据音频播放状态控制嘴巴动画
+          if (clonedSoundRef.current.playing()) {
+            // 使用更自然的动画频率
+            const now = Date.now();
+            if (now - (lastMouthUpdateRef.current || 0) > 100) {
+              const shouldOpen = Math.random() > 0.4;
+              setIsMouthOpen(shouldOpen);
+              lastMouthUpdateRef.current = now;
+            }
           }
         }
-      }, 100);
+      }, 50); // 提高更新频率以获得更流畅的动画
     } else {
-      clonedAudioRef.current.pause();
-      setIsMouthOpen(false);
+      clonedSoundRef.current.pause();
       
       // 清除进度更新定时器
       if (clonedIntervalRef.current) {
@@ -699,7 +851,7 @@ const VoiceClonePage: React.FC = () => {
   
   // 处理生成克隆声音
   const handleGenerateVoice = async () => {
-    if (!originalAudio || !selectedFile) return;
+    if (!originalAudio) return;
     
     setIsGenerating(true);
     
@@ -710,30 +862,176 @@ const VoiceClonePage: React.FC = () => {
       formData.append('template', selectedTemplate);
       formData.append('emotion', selectedEmotion);
       
-      // 调用后端API
-      const response = await api.post('/voice/clone', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
-      });
+      // 使用本地示例音频（无需后端）
+      const useMockResponse = true; // 设置为true以使用本地示例音频
       
-      // 处理API响应
-      if (response.data.success) {
-        const { name, url, duration, template, emotion } = response.data.data;
+      if (useMockResponse) {
+        // 模拟API响应延迟
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // 在实际项目中，url应该是API返回的完整URL
-        // 这里为了演示，我们仍然使用原始音频
+        // 使用本地示例音频 - 确保使用完整的URL路径
+        const sampleAudioPath = '/audio/dad_sample.mp3';
+        console.log('使用本地示例音频:', sampleAudioPath);
+        
+        // 设置克隆音频状态
         setClonedAudio({
-          name,
-          url: originalAudio.url, // 实际项目中应该使用response.data.data.url
-          duration: duration || originalAudio.duration
+          name: '爸爸声音示例',
+          url: sampleAudioPath,
+          duration: 30 // 默认时长
+        });
+        
+        // 创建新的Howl实例播放克隆后的声音
+        if (clonedSoundRef.current) {
+          clonedSoundRef.current.unload(); // 卸载之前的音频
+        }
+        
+        clonedSoundRef.current = new Howl({
+          src: [sampleAudioPath],
+          html5: true,
+          preload: true,
+          format: ['mp3'],
+          loop: false, // 确保不循环播放
+          autoplay: false, // 不自动播放，等待用户点击
+          volume: 1.0, // 设置音量为最大
+          onload: () => {
+            console.log('音频加载成功');
+            // 确保音频完全加载后再允许播放
+            setIsGenerating(false);
+          },
+          onplay: () => {
+            console.log('开始播放克隆音频');
+            setIsPlayingCloned(true);
+            setIsMouthOpen(true);
+          },
+          onpause: () => {
+            console.log('暂停播放克隆音频');
+            setIsPlayingCloned(false);
+            setIsMouthOpen(false);
+          },
+          onloaderror: (id, error) => {
+            console.error('音频加载失败:', error);
+            alert('音频加载失败，请刷新页面重试');
+            // 即使加载失败，也重置播放状态
+            setIsPlayingCloned(false);
+            setIsMouthOpen(false);
+          },
+          onplayerror: (id, error) => {
+            console.error('音频播放失败:', error);
+            setIsPlayingCloned(false);
+            setIsMouthOpen(false);
+            alert('音频播放失败，请重试');
+          },
+          onend: () => {
+            console.log('克隆音频播放结束');
+            setIsPlayingCloned(false);
+            setIsMouthOpen(false);
+            if (clonedIntervalRef.current) {
+              clearInterval(clonedIntervalRef.current);
+              clonedIntervalRef.current = null;
+            }
+          },
+          onstop: () => {
+            console.log('停止播放克隆音频');
+            setIsPlayingCloned(false);
+            setIsMouthOpen(false);
+          },
+          onseek: () => {
+            if (clonedSoundRef.current && clonedSoundRef.current.playing()) {
+              setIsMouthOpen(true);
+            }
+          }
         });
       } else {
-        throw new Error(response.data.message || '生成克隆声音失败');
+        // 调用后端API
+        const response = await api.post('/voice/clone', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        });
+        
+        // 处理API响应
+        if (response.data.success) {
+          const { name, url, duration, template, emotion } = response.data.data;
+          
+          // 构建完整的URL
+          const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+          
+          console.log('克隆声音URL:', fullUrl);
+          
+          // 使用后端返回的音频URL
+          setClonedAudio({
+            name,
+            url: fullUrl, // 使用完整的URL
+            duration: duration || originalAudio.duration
+          });
+          
+          // 创建新的Howl实例播放克隆后的声音
+          if (clonedSoundRef.current) {
+            clonedSoundRef.current.unload(); // 卸载之前的音频
+          }
+          
+          clonedSoundRef.current = new Howl({
+            src: [fullUrl],
+            html5: true,
+            preload: true,
+            format: ['mp3'],
+            loop: false,
+            autoplay: false,
+            volume: 1.0,
+            onload: () => {
+              console.log('音频加载成功');
+              // 音频加载成功后立即播放
+              clonedSoundRef.current?.play();
+              setIsPlayingCloned(true);
+              setIsMouthOpen(true);
+            },
+            onplay: () => {
+              console.log('开始播放克隆音频');
+              setIsPlayingCloned(true);
+              setIsMouthOpen(true);
+            },
+            onpause: () => {
+              console.log('暂停播放克隆音频');
+              setIsPlayingCloned(false);
+              setIsMouthOpen(false);
+            },
+            onloaderror: (id, error) => {
+              console.error('音频加载失败:', error);
+              setIsPlayingCloned(false);
+              setIsMouthOpen(false);
+            },
+            onplayerror: (id, error) => {
+              console.error('音频播放失败:', error);
+              setIsPlayingCloned(false);
+              setIsMouthOpen(false);
+            },
+            onend: () => {
+              console.log('克隆音频播放结束');
+              setIsPlayingCloned(false);
+              setIsMouthOpen(false);
+              if (clonedIntervalRef.current) {
+                clearInterval(clonedIntervalRef.current);
+                clonedIntervalRef.current = null;
+              }
+            },
+            onstop: () => {
+              console.log('停止播放克隆音频');
+              setIsPlayingCloned(false);
+              setIsMouthOpen(false);
+            },
+            onseek: () => {
+              if (clonedSoundRef.current && clonedSoundRef.current.playing()) {
+                setIsMouthOpen(true);
+              }
+            }
+          });
+        } else {
+          throw new Error(response.data.message || '生成克隆声音失败');
+        }
       }
     } catch (error) {
       console.error('生成克隆声音失败:', error);
@@ -755,12 +1053,21 @@ const VoiceClonePage: React.FC = () => {
           <UploadIcon>
             <UploadIconSvg />
           </UploadIcon>
-          <UploadText>点击上传音频文件或拖拽文件到此处</UploadText>
-          <UploadSubText>支持 MP3, WAV, M4A 格式，最大 10MB</UploadSubText>
+          {selectedFile ? (
+            <>
+              <UploadText>已上传: {selectedFile.name}</UploadText>
+              <UploadSubText>点击重新上传</UploadSubText>
+            </>
+          ) : (
+            <>
+              <UploadText>点击上传音频或视频文件或拖拽文件到此处</UploadText>
+              <UploadSubText>支持 MP3, WAV, M4A, MP4, AVI 格式，最大 10MB</UploadSubText>
+            </>
+          )}
           <FileInput 
             type="file" 
             ref={fileInputRef} 
-            accept="audio/*" 
+            accept="audio/*,video/*" 
             onChange={handleFileSelect} 
           />
         </UploadArea>
@@ -829,7 +1136,7 @@ const VoiceClonePage: React.FC = () => {
         
         <GenerateButton
           onClick={handleGenerateVoice}
-          disabled={!originalAudio || isGenerating}
+          disabled={!originalAudio}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -871,11 +1178,12 @@ const VoiceClonePage: React.FC = () => {
                 $isOpen={isMouthOpen}
                 animate={isMouthOpen ? {
                   height: [15, 20, 15, 20],
-                  y: [0, 2, 0, 2]
+                  scaleX: [1, 1.1, 1, 1.1]
                 } : {}}
                 transition={{
                   repeat: Infinity,
-                  duration: 0.5
+                  duration: 0.5,
+                  ease: "easeInOut"
                 }}
               />
             </BearFace>
@@ -893,16 +1201,16 @@ const VoiceClonePage: React.FC = () => {
                   {isPlayingOriginal ? <PauseIconSvg /> : <PlayIconSvg />}
                 </PlayButton>
                 <AudioProgressBar onClick={(e) => {
-                  if (!originalAudioRef.current || !originalAudio) return;
+                  if (!originalSoundRef.current || !originalAudio) return;
                   const rect = e.currentTarget.getBoundingClientRect();
                   const pos = (e.clientX - rect.left) / rect.width;
-                  originalAudioRef.current.currentTime = pos * originalAudio.duration;
+                  originalSoundRef.current.seek(pos * originalAudio.duration);
                   setOriginalProgress(pos * 100);
                 }}>
                   <AudioProgress $width={`${originalProgress}%`} />
                 </AudioProgressBar>
                 <TimeInfo>
-                  {originalAudio ? formatTime(originalAudioRef.current?.currentTime || 0) : '0:00'} / 
+                  {originalAudio ? formatTime(originalSoundRef.current?.seek() || 0) : '0:00'} / 
                   {originalAudio ? formatTime(originalAudio.duration) : '0:00'}
                 </TimeInfo>
               </AudioControls>
@@ -912,23 +1220,45 @@ const VoiceClonePage: React.FC = () => {
               <AudioLabel>克隆音频</AudioLabel>
               <AudioControls>
                 <PlayButton
-                  onClick={() => setIsPlayingCloned(!isPlayingCloned)}
+                  onClick={() => {
+                    if (isPlayingCloned) {
+                      // 暂停播放
+                      clonedSoundRef.current?.pause();
+                      setIsPlayingCloned(false);
+                      setIsMouthOpen(false);
+                    } else {
+                      // 开始播放
+                      if (clonedSoundRef.current) {
+                        // 确保音频已加载并准备好播放
+                        if (!clonedSoundRef.current.playing()) {
+                          console.log('开始播放克隆音频');
+                          // 如果音频已经结束，重置到开始位置
+                          if (clonedSoundRef.current.state() === 'loaded') {
+                            clonedSoundRef.current.seek(0);
+                          }
+                          clonedSoundRef.current.play();
+                          setIsPlayingCloned(true);
+                          setIsMouthOpen(true);
+                        }
+                      }
+                    }
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   {isPlayingCloned ? <PauseIconSvg /> : <PlayIconSvg />}
                 </PlayButton>
                 <AudioProgressBar onClick={(e) => {
-                  if (!clonedAudioRef.current || !clonedAudio) return;
+                  if (!clonedSoundRef.current || !clonedAudio) return;
                   const rect = e.currentTarget.getBoundingClientRect();
                   const pos = (e.clientX - rect.left) / rect.width;
-                  clonedAudioRef.current.currentTime = pos * clonedAudio.duration;
+                  clonedSoundRef.current.seek(pos * clonedAudio.duration);
                   setClonedProgress(pos * 100);
                 }}>
                   <AudioProgress $width={`${clonedProgress}%`} />
                 </AudioProgressBar>
                 <TimeInfo>
-                  {clonedAudio ? formatTime(clonedAudioRef.current?.currentTime || 0) : '0:00'} / 
+                  {clonedAudio ? formatTime(clonedSoundRef.current?.seek() || 0) : '0:00'} / 
                   {clonedAudio ? formatTime(clonedAudio.duration) : '0:00'}
                 </TimeInfo>
               </AudioControls>

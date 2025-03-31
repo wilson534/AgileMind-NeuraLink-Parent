@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="90" fill="#f5f5dc" />
+  <circle cx="100" cy="85" r="70" fill="#f0e6d2" />
+  <!-- 头发 - 年轻活泼的发型 -->
+  <path d="M50 70 Q70 40 100 40 Q130 40 150 70" fill="#8b4513" stroke="#6b3e0c" stroke-width="2" />
+  <!-- 侧边头发 - 更蓬松活泼 -->
+  <path d="M40 90 Q60 60 80 60" fill="none" stroke="#8b4513" stroke-width="4" />
+  <path d="M160 90 Q140 60 120 60" fill="none" stroke="#8b4513" stroke-width="4" />
+  <!-- 马尾辫 -->
+  <path d="M100 40 Q100 20 100 10" fill="none" stroke="#8b4513" stroke-width="6" />
+  <path d="M100 10 Q120 15 130 30" fill="none" stroke="#8b4513" stroke-width="4" />
+  <path d="M100 10 Q80 15 70 30" fill="none" stroke="#8b4513" stroke-width="4" />
+  <!-- 刘海 - 更时尚的刘海 -->
+  <path d="M70 60 Q85 70 100 60 Q115 70 130 60" fill="#8b4513" stroke="#6b3e0c" stroke-width="2" />
+  <!-- 发夹 -->
+  <rect x="70" y="50" width="10" height="5" rx="2" fill="#ff69b4" />
+  <!-- 眼睛 - 更大更有神 -->
+  <ellipse cx="75" cy="90" rx="10" ry="8" fill="white" stroke="#333" stroke-width="1" />
+  <ellipse cx="125" cy="90" rx="10" ry="8" fill="white" stroke="#333" stroke-width="1" />
+  <circle cx="75" cy="90" r="4" fill="#333" />
+  <circle cx="125" cy="90" r="4" fill="#333" />
+  <!-- 睫毛 -->
+  <path d="M65 85 L60 82" stroke="#333" stroke-width="1" />
+  <path d="M67 83 L63 79" stroke="#333" stroke-width="1" />
+  <path d="M70 82 L67 77" stroke="#333" stroke-width="1" />
+  <path d="M135 85 L140 82" stroke="#333" stroke-width="1" />
+  <path d="M133 83 L137 79" stroke="#333" stroke-width="1" />
+  <path d="M130 82 L133 77" stroke="#333" stroke-width="1" />
+  <!-- 眉毛 - 更柔和上扬 -->
+  <path d="M65 75 Q75 68 85 75" fill="none" stroke="#333" stroke-width="2" />
+  <path d="M115 75 Q125 68 135 75" fill="none" stroke="#333" stroke-width="2" />
+  <!-- 嘴巴 - 微笑 -->
+  <path d="M85 120 Q100 130 115 120" fill="none" stroke="#333" stroke-width="2" />
+  <!-- 腮红 -->
+  <ellipse cx="70" cy="105" rx="8" ry="5" fill="#ffb6c1" opacity="0.5" />
+  <ellipse cx="130" cy="105" rx="8" ry="5" fill="#ffb6c1" opacity="0.5" />
+</svg>

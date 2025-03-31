@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="90" fill="#f5f5dc" />
+  <circle cx="100" cy="85" r="70" fill="#f0e6d2" />
+  <!-- 头发 -->
+  <path d="M50 80 Q70 40 100 40 Q130 40 150 80" fill="#e0e0e0" stroke="#d0d0d0" stroke-width="2" />
+  <path d="M40 90 Q60 60 80 60" fill="none" stroke="#e0e0e0" stroke-width="4" />
+  <path d="M160 90 Q140 60 120 60" fill="none" stroke="#e0e0e0" stroke-width="4" />
+  <!-- 眼睛 -->
+  <ellipse cx="75" cy="90" rx="10" ry="8" fill="white" stroke="#333" stroke-width="1" />
+  <ellipse cx="125" cy="90" rx="10" ry="8" fill="white" stroke="#333" stroke-width="1" />
+  <circle cx="75" cy="90" r="4" fill="#333" />
+  <circle cx="125" cy="90" r="4" fill="#333" />
+  <!-- 眉毛 -->
+  <path d="M65 75 Q75 70 85 75" fill="none" stroke="#333" stroke-width="2" />
+  <path d="M115 75 Q125 70 135 75" fill="none" stroke="#333" stroke-width="2" />
+  <!-- 嘴巴 -->
+  <path d="M85 120 Q100 130 115 120" fill="none" stroke="#333" stroke-width="2" />
+  <!-- 胡子 -->
+  <path d="M70 110 Q90 115 100 110 Q110 115 130 110" fill="none" stroke="#e0e0e0" stroke-width="3" />
+  <path d="M75 120 Q100 125 125 120" fill="none" stroke="#e0e0e0" stroke-width="2" />
+  <!-- 皱纹 -->
+  <path d="M65 80 Q75 75 85 80" fill="none" stroke="#d0d0d0" stroke-width="1" />
+  <path d="M115 80 Q125 75 135 80" fill="none" stroke="#d0d0d0" stroke-width="1" />
+  <path d="M60 100 Q70 95 80 100" fill="none" stroke="#d0d0d0" stroke-width="1" />
+  <path d="M120 100 Q130 95 140 100" fill="none" stroke="#d0d0d0" stroke-width="1" />
+</svg>

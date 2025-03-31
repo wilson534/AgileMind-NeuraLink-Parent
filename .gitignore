@@ -8,6 +8,9 @@ node_modules/
 /frontend/build/
 /backend/dist/
 /backend/build/
+*.tsbuildinfo
+.next/
+out/
 
 # 环境变量文件
 .env
@@ -29,10 +32,6 @@ logs/
 *.swp
 *.swo
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # 测试覆盖率报告
 /coverage/
@@ -42,6 +41,9 @@ logs/
 .eslintcache
 .stylelintcache
 .cache/
+.vite/
+.turbo/
+.parcel-cache/
 
 # 临时文件
 tmp/
@@ -59,7 +61,32 @@ $RECYCLE.BIN/
 /public/uploads/
 
 # 特定于项目的忽略项
-# 如果有特定于您项目的文件或目录需要忽略，请在此处添加
+# Vite特定文件
+/frontend/.vite/
+/frontend/stats.html
+
+# TypeScript增量编译文件
+/frontend/*.tsbuildinfo
+/backend/*.tsbuildinfo
+
+# 测试快照
+__snapshots__/
+*.snap
+
+# 本地开发配置
+.env.development
+.env.local.development
+
+# 依赖锁定文件（如果团队决定不提交）
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Prisma数据库文件
+/backend/prisma/dev.db
+/backend/prisma/dev.db-journal
+/backend/prisma/*.db
+/backend/prisma/*.db-journal
 
 # 本地配置文件
 *.local.json

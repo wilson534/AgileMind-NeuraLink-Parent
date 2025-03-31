@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 
+// OpenAI API配置常量
+const OPENAI_API_BASE_URL = 'https://api.302ai.cn/v1';
+const OPENAI_CHAT_ENDPOINT = '/chat/completions';
+const OPENAI_MODEL = 'gpt-3.5-turbo';
+
 /**
  * 分析健康数据并生成建议
  * @param req 请求对象，包含饮食、运动和睡眠信息
@@ -173,4 +178,95 @@ const generateSleepAdvice = (sleep: any) => {
   }
   
   return null;
+};
+
+/**
+ * 使用GPT-3.5分析健康数据并生成建议
+ * @param req 请求对象，包含饮食、运动和睡眠信息
+ * @param res 响应对象
+ */
+export const analyzeHealthDataWithGPT = async (req: Request, res: Response) => {
+  try {
+    // 从请求中获取数据
+    const {
+      breakfastDescription,
+      lunchDescription,
+      dinnerDescription,
+      exerciseType,
+      exerciseDuration,
+      exerciseDescription,
+      sleepStartTime,
+      sleepEndTime,
+      sleepTotalHours
+    } = req.body;
+    
+    // 构建提示词
+    const prompt = `
+请根据以下健康数据分析并给出专业建议：
+
+1. 饮食情况：
+早餐：${breakfastDescription || '无数据'}
+午餐：${lunchDescription || '无数据'}
+晚餐：${dinnerDescription || '无数据'}
+
+2. 运动情况：
+类型：${exerciseType || '无数据'}
+时长：${exerciseDuration || '无数据'}
+描述：${exerciseDescription || '无数据'}
+
+3. 睡眠情况：
+开始时间：${sleepStartTime || '无数据'}
+结束时间：${sleepEndTime || '无数据'}
+总时长：${sleepTotalHours || '无数据'}小时
+
+请从以下几个方面给出建议：
+1. 饮食营养分析和建议
+2. 运动强度和时间评估
+3. 睡眠质量分析
+4. 综合健康建议
+`;
+
+    // 调用 OpenAI API
+    const authHeader = `Bearer ${process.env.OPENAI_API_KEY?.trim() || ''}`;
+    const response = await axios.post(
+      `${OPENAI_API_BASE_URL}${OPENAI_CHAT_ENDPOINT}`,
+      {
+        model: OPENAI_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: "你是一位专业的儿童健康顾问，请根据用户提供的健康数据进行分析并给出专业的建议。"
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      },
+      {
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000 // 30秒超时
+      }
+    );
+
+    // 返回 OpenAI 的建议
+    res.json({
+      status: 'success',
+      data: {
+        advice: response.data.choices[0].message.content
+      }
+    });
+  } catch (error: any) {
+    console.error('分析健康数据时出错:', error);
+    res.status(500).json({
+      status: 'error',
+      message: '分析健康数据时出错',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 };
