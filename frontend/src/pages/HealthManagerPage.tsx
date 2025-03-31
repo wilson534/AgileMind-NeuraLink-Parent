@@ -267,7 +267,7 @@ const AdviceTypeButton = styled.button<{ isActive: boolean }>`
   }
 `;
 
-const AdviceSection = styled.div`
+const AdviceSection = styled.div<{ theme?: 'diet' | 'exercise' | 'sleep' }>`
   margin-bottom: 20px;
   padding: 15px;
   border-radius: 8px;
@@ -276,7 +276,7 @@ const AdviceSection = styled.div`
     'rgba(135, 206, 235, 0.1)'};
 `;
 
-const AdviceSectionTitle = styled.h3`
+const AdviceSectionTitle = styled.h3<{ theme?: 'diet' | 'exercise' | 'sleep' }>`
   color: ${props => props.theme === 'diet' ? '#FF69B4' : 
     props.theme === 'exercise' ? '#3CB371' : 
     '#4682B4'};
