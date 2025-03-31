@@ -1,4 +1,5 @@
-// Vercel无服务器函数入口
-import app from '../backend/src/app';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default app;
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  res.status(200).json({ message: 'API is working!' });
+}
