@@ -201,7 +201,6 @@ const WaveformBar = styled(motion.div)<{ $height: number }>`
   border-radius: 3px;
 `;
 
-// 添加音符组件
 const MusicNote = styled(motion.div)`
   position: absolute;
   font-size: 1.5rem;
@@ -212,10 +211,8 @@ const MusicNote = styled(motion.div)`
   pointer-events: none;
 `;
 
-// 添加音符字符数组
 const musicNotes = ['♪', '♫', '♬', '♩', '♭', '♮'];
 
-// 音乐播放器图标组件
 const PlayIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8 5V19L19 12L8 5Z" fill="currentColor" />
@@ -278,13 +275,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 }) => {
   const [progress, setProgress] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [notes, setNotes] = useState<Array<{id: number, x: number, y: number, note: string}>>([]);
+  const [notes, setNotes] = useState<Array<{id: number; x: number; y: number; note: string}>>([]);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
-  // 处理音频播放和暂停
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
@@ -299,7 +295,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
           console.error('播放失败:', error);
         });
         
-        // 设置进度更新定时器
         progressIntervalRef.current = window.setInterval(() => {
           if (audioRef.current) {
             const currentTime = audioRef.current.currentTime;
@@ -310,8 +305,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
         }, 1000);
       } else {
         audioRef.current.pause();
-        
-        // 清除进度更新定时器
         if (progressIntervalRef.current) {
           clearInterval(progressIntervalRef.current);
           progressIntervalRef.current = null;
@@ -319,7 +312,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
       }
     }
     
-    // 清理函数
     return () => {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
@@ -327,14 +319,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     };
   }, [song, isPlaying, volume]);
   
-  // 处理音量变化
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
   
-  // 生成漂浮音符
   useEffect(() => {
     if (!isPlaying) {
       setNotes([]);
@@ -348,34 +338,27 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
         const y = playerContainerRef.current.offsetHeight;
         const noteIndex = Math.floor(Math.random() * musicNotes.length);
         
-        setNotes(prev => [
-          ...prev, 
-          {
+        setNotes(prev => {
+          const newNotes = [...prev, {
             id: Date.now(),
             x,
             y,
             note: musicNotes[noteIndex]
-          }
-        ]);
-        
-        // 限制音符数量，避免性能问题
-        if (notes.length > 15) {
-          setNotes(prev => prev.slice(1));
-        }
+          }];
+          return newNotes.slice(-15);
+        });
       }
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, notes.length]);
+  }, [isPlaying]);
   
-  // 格式化时间
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
-  // 处理进度条点击
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!audioRef.current || !song) return;
     
@@ -391,1190 +374,92 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     setProgress(clickPosition * 100);
   };
   
-  // 生成随机波形数据
   const generateWaveform = () => {
     return Array.from({ length: 40 }).map(() => {
       const baseHeight = isPlaying ? 20 : 5;
       const randomFactor = Math.random() * (isPlaying ? 15 : 3);
       return baseHeight + randomFactor;
     });
-  }
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 20 : 5;
-    const randomFactor = Math.random() * (isPlaying ? 15 : 3);
-    return baseHeight + randomFactor;
-  });
-  
-  return Array.from({ length: 40 }).map(() => {
-    const baseHeight = isPlaying ? 2
+  };
+
+  return (
+    <PlayerContainer ref={playerContainerRef}>
+      {notes.map(note => (
+        <MusicNote
+          key={note.id}
+          style={{ left: note.x, top: note.y }}
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 0, y: -100 }}
+          transition={{ duration: 2 }}
+        >
+          {note.note}
+        </MusicNote>
+      ))}
+      
+      {song && (
+        <>
+          <AlbumArt>
+            <AlbumImage src={song.albumArt} alt={song.title} />
+          </AlbumArt>
+          
+          <SongInfo>
+            <SongTitle>{song.title}</SongTitle>
+            <Artist>{song.artist}</Artist>
+          </SongInfo>
+          
+          <Controls>
+            <ControlButton onClick={onPrev}>
+              <PrevIcon />
+            </ControlButton>
+            
+            <PlayButton onClick={onPlayPause}>
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </PlayButton>
+            
+            <ControlButton onClick={onNext}>
+              <NextIcon />
+            </ControlButton>
+          </Controls>
+          
+          <ProgressContainer>
+            <ProgressBar onClick={handleProgressClick}>
+              <Progress $width={`${progress}%`} />
+            </ProgressBar>
+            <TimeInfo>
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(song.duration)}</span>
+            </TimeInfo>
+          </ProgressContainer>
+          
+          <VolumeContainer>
+            <VolumeIcon>
+              <VolumeIconSvg />
+            </VolumeIcon>
+            <VolumeSlider
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+            />
+          </VolumeContainer>
+          
+          <WaveformContainer>
+            {generateWaveform().map((height, index) => (
+              <WaveformBar
+                key={index}
+                $height={height}
+                initial={{ height: 5 }}
+                animate={{ height }}
+                transition={{ duration: 0.2 }}
+              />
+            ))}
+          </WaveformContainer>
+        </>
+      )}
+    </PlayerContainer>
+  );
+};
+
+export default MusicPlayer;
